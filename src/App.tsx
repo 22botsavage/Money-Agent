@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { auth, db, signIn, logOut } from './firebase';
+import { auth, db, signInWithEmail, signUpWithEmail, logOut } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
@@ -22,6 +22,12 @@ export default function App() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Auth Form State
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -107,6 +113,21 @@ export default function App() {
     }
   };
 
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    try {
+      if (isSignUp) {
+        await signUpWithEmail(email, password);
+      } else {
+        await signInWithEmail(email, password);
+      }
+    } catch (err: any) {
+      console.error("Auth error:", err);
+      setAuthError(err.message || "Authentication failed.");
+    }
+  };
+
   if (!isAuthReady || loading) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-100">Loading...</div>;
   }
@@ -114,18 +135,49 @@ export default function App() {
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 p-4">
-        <div className="max-w-md w-full bg-gray-900 rounded-2xl shadow-xl border border-gray-800 p-8 text-center">
+        <div className="max-w-md w-full bg-gray-900 rounded-2xl shadow-xl border border-gray-800 p-8">
           <div className="w-16 h-16 bg-green-900/30 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
             <Wallet size={32} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-100 mb-2">WhatsApp Money Manager</h1>
-          <p className="text-gray-400 mb-8">Track your expenses simply by texting an AI assistant on WhatsApp.</p>
-          <button 
-            onClick={signIn}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-3 px-4 rounded-xl transition-colors"
-          >
-            Sign in with Google
-          </button>
+          <h1 className="text-2xl font-bold text-gray-100 mb-2 text-center">Money Manager</h1>
+          <p className="text-gray-400 mb-8 text-center">Sign in to manage your finances via WhatsApp</p>
+          
+          <form onSubmit={handleAuth} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-gray-100 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-gray-100 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
+                required
+              />
+            </div>
+            {authError && <p className="text-red-400 text-sm text-center">{authError}</p>}
+            <button 
+              type="submit"
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-xl transition-colors"
+            >
+              {isSignUp ? 'Create Account' : 'Sign In'}
+            </button>
+          </form>
+          
+          <p className="text-center text-gray-400 mt-6 text-sm">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button onClick={() => setIsSignUp(!isSignUp)} className="text-green-500 hover:text-green-400 font-medium">
+              {isSignUp ? 'Sign In' : 'Sign Up'}
+            </button>
+          </p>
         </div>
       </div>
     );
