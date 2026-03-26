@@ -40,7 +40,7 @@
         },
         "currency": {
           "type": "string",
-          "description": "The currency code (e.g., USD)"
+          "description": "The currency code (e.g., IDR)"
         },
         "category": {
           "type": "string",

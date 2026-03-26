@@ -258,7 +258,7 @@ export default function App() {
               To record a transaction, send a WhatsApp message to your Twilio Sandbox number.
             </p>
             <p className="text-blue-300 text-sm mt-1">
-              Example: <em className="text-blue-200">"I just spent $15 on lunch"</em> or <em className="text-blue-200">"Got paid $2000 for freelance work"</em>
+              Example: <em className="text-blue-200">"I just spent Rp 50.000 on lunch"</em> or <em className="text-blue-200">"Got paid Rp 2.000.000 for freelance work"</em>
             </p>
           </div>
         </div>
@@ -268,7 +268,7 @@ export default function App() {
           <div className="bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-800">
             <p className="text-sm font-medium text-gray-400 mb-1">Total Balance</p>
             <h3 className={`text-3xl font-bold ${balance >= 0 ? 'text-gray-100' : 'text-red-400'}`}>
-              ${balance.toFixed(2)}
+              Rp {balance.toLocaleString('id-ID')}
             </h3>
           </div>
           <div className="bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-800">
@@ -276,14 +276,14 @@ export default function App() {
               <p className="text-sm font-medium text-gray-400">Income</p>
               <ArrowUpCircle className="text-green-500" size={20} />
             </div>
-            <h3 className="text-2xl font-bold text-gray-100">${totalIncome.toFixed(2)}</h3>
+            <h3 className="text-2xl font-bold text-gray-100">Rp {totalIncome.toLocaleString('id-ID')}</h3>
           </div>
           <div className="bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-800">
             <div className="flex items-center justify-between mb-1">
               <p className="text-sm font-medium text-gray-400">Expenses</p>
               <ArrowDownCircle className="text-red-500" size={20} />
             </div>
-            <h3 className="text-2xl font-bold text-gray-100">${totalExpense.toFixed(2)}</h3>
+            <h3 className="text-2xl font-bold text-gray-100">Rp {totalExpense.toLocaleString('id-ID')}</h3>
           </div>
         </div>
 
@@ -317,7 +317,7 @@ export default function App() {
                       <p className={`text-sm font-bold ${
                         tx.type === 'income' ? 'text-green-400' : 'text-gray-100'
                       }`}>
-                        {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)} {tx.currency}
+                        {tx.type === 'income' ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
                       </p>
                       <p className="text-xs text-gray-400">
                         {format(new Date(tx.date), 'MMM d, h:mm a')}

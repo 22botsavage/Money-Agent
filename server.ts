@@ -100,7 +100,7 @@ app.post('/api/webhook/twilio', async (req, res) => {
     const aiClient = getAI();
     const geminiResponse = await aiClient.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Parse this financial transaction: "${incomingMsg}". Return JSON with amount (number), currency (string, e.g. USD), category (string), description (string), type (string: 'expense' or 'income').`,
+      contents: `Parse this financial transaction: "${incomingMsg}". Return JSON with amount (number), currency (string, default to IDR), category (string), description (string), type (string: 'expense' or 'income').`,
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
