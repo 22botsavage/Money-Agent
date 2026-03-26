@@ -1,0 +1,98 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - whatsappNumber: string (optional)
+    //   - createdAt: string (required)
+    //
+    // Collection: transactions
+    // Document ID: {transactionId}
+    // Fields:
+    //   - userId: string (required)
+    //   - amount: number (required)
+    //   - currency: string (required)
+    //   - category: string (required)
+    //   - description: string (required)
+    //   - type: string (required, 'expense' or 'income')
+    //   - date: string (required)
+    //   - createdAt: string (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Domain Validators
+    function isValidUser() {
+      return hasRequiredFields(['uid', 'email', 'createdAt']) &&
+             request.resource.data.uid == request.auth.uid &&
+             request.resource.data.email is string &&
+             request.resource.data.createdAt is string &&
+             (!('whatsappNumber' in request.resource.data) || request.resource.data.whatsappNumber is string);
+    }
+
+    function isValidTransaction() {
+      return hasRequiredFields(['userId', 'amount', 'currency', 'category', 'description', 'type', 'date', 'createdAt']) &&
+             ((isAuthenticated() && request.resource.data.userId == request.auth.uid) || request.resource.data.get('webhookSecret', '') == "ai-studio-webhook-secret-2026") &&
+             request.resource.data.amount is number &&
+             request.resource.data.currency is string &&
+             request.resource.data.category is string &&
+             request.resource.data.description is string &&
+             request.resource.data.type in ['expense', 'income'] &&
+             request.resource.data.date is string &&
+             request.resource.data.createdAt is string;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser();
+      allow update: if isOwner(userId) && isValidUser() && request.resource.data.uid == resource.data.uid;
+      allow delete: if isOwner(userId);
+    }
+
+    match /whatsapp_mappings/{whatsappNumber} {
+      allow get: if true; // Allow the webhook to find the user ID
+      allow list: if false;
+      allow create, update: if isOwner(request.resource.data.userId);
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isDocOwner();
+      allow create: if (isAuthenticated() && isValidTransaction()) || 
+                       (request.resource.data.get('webhookSecret', '') == "ai-studio-webhook-secret-2026" && isValidTransaction());
+      allow update: if isDocOwner() && isValidTransaction() && request.resource.data.userId == resource.data.userId;
+      allow delete: if isDocOwner();
+    }
+  }
+}

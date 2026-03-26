@@ -1,0 +1,5 @@
+{
+  "name": "WhatsApp Money Manager",
+  "description": "An AI-powered money manager accessible via WhatsApp using Twilio and Gemini, featuring a web dashboard for financial summaries.",
+  "requestFramePermissions": []
+}

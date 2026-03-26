@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A registered user of the Money Manager",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address"
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "User's registered WhatsApp number (e.g., +1234567890)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the user registered"
+        }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial transaction recorded via WhatsApp",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The user's Firebase Auth UID"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The transaction amount"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency code (e.g., USD)"
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the transaction"
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the transaction"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["expense", "income"],
+          "description": "Whether this is an expense or income"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the transaction occurred"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the record was created"
+        }
+      },
+      "required": ["userId", "amount", "currency", "category", "description", "type", "date", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores registered users"
+    },
+    "/transactions/{transactionId}": {
+      "schema": {
+        "$ref": "#/entities/Transaction"
+      },
+      "description": "Stores all financial transactions"
+    }
+  }
+}
