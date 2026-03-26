@@ -1,10 +1,11 @@
 import express from 'express';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import twilio from 'twilio';
 import { GoogleGenAI, Type } from '@google/genai';
 import path from 'path';
 import firebaseConfig from './firebase-applet-config.json' with { type: 'json' };
+import { format } from 'date-fns';
 
 // Initialize Firebase Client SDK for server-side operations
 const firebaseApp = initializeApp(firebaseConfig);
@@ -134,8 +135,69 @@ app.post('/api/webhook/twilio', async (req, res) => {
 
     await addDoc(collection(db, 'transactions'), transaction);
 
-    // 4. Send confirmation back
-    await sendWhatsAppMessage(from, `✅ Recorded ${parsedData.type}: ${parsedData.amount} ${parsedData.currency} for ${parsedData.category} (${parsedData.description})`, res);
+    // 4. Fetch data for Daily Finan-Check
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    const userEmail = userDoc.exists() ? userDoc.data().email : 'User';
+
+    const txQuery = query(collection(db, 'transactions'), where('userId', '==', userId));
+    const txSnapshot = await getDocs(txQuery);
+    
+    let totalIncome = 0;
+    let totalExpense = 0;
+    
+    let todayIncome = 0;
+    let todayExpense = 0;
+    let biggestExpenseAmount = 0;
+    let biggestExpenseName = '-';
+
+    const now = new Date();
+    
+    // Format date specifically for Indonesia timezone (WIB)
+    const todayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(now); // Returns YYYY-MM-DD
+
+    const displayDate = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Jakarta',
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(now);
+
+    txSnapshot.forEach(docSnap => {
+      const tx = docSnap.data();
+      const amount = tx.amount || 0;
+      
+      if (tx.type === 'income') totalIncome += amount;
+      else if (tx.type === 'expense') totalExpense += amount;
+
+      if (tx.date && tx.date.startsWith(todayStr)) {
+        if (tx.type === 'income') {
+          todayIncome += amount;
+        } else if (tx.type === 'expense') {
+          todayExpense += amount;
+          if (amount > biggestExpenseAmount) {
+            biggestExpenseAmount = amount;
+            biggestExpenseName = tx.category || tx.description;
+          }
+        }
+      }
+    });
+
+    const totalBalance = totalIncome - totalExpense;
+    const dailyBudget = 150000; // Default daily budget
+    const budgetLeft = dailyBudget - todayExpense;
+
+    const formatIdr = (num: number) => `Rp ${num.toLocaleString('id-ID')}`;
+
+    const replyMessage = `📉 DAILY FINAN-CHECK\n\nUser: ${userEmail}\nDate: ${displayDate}\n\n💰 IN: ${formatIdr(todayIncome)}\n💸 OUT: ${formatIdr(todayExpense)}\n🏦 BALANCE: ${formatIdr(totalBalance)}\n\n⚠️ RECAP: ${formatIdr(budgetLeft)}\n🚩 LEAK: ${biggestExpenseName} - ${formatIdr(biggestExpenseAmount)}\n\nThink before you spend.`;
+
+    // 5. Send confirmation back
+    await sendWhatsAppMessage(from, replyMessage, res);
 
   } catch (error) {
     console.error('Error processing webhook:', error);
