@@ -2,17 +2,11 @@ import express from 'express';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, collection, addDoc } from 'firebase/firestore';
 import twilio from 'twilio';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import firebaseConfig from './firebase-applet-config.json' with { type: 'json' };
 
 // Initialize Firebase Client SDK for server-side operations
-const firebaseConfig = require('./firebase-applet-config.json');
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
 
@@ -110,13 +104,13 @@ app.post('/api/webhook/twilio', async (req, res) => {
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
-          type: "OBJECT",
+          type: Type.OBJECT,
           properties: {
-            amount: { type: "NUMBER" },
-            currency: { type: "STRING" },
-            category: { type: "STRING" },
-            description: { type: "STRING" },
-            type: { type: "STRING" }
+            amount: { type: Type.NUMBER },
+            currency: { type: Type.STRING },
+            category: { type: Type.STRING },
+            description: { type: Type.STRING },
+            type: { type: Type.STRING }
           },
           required: ['amount', 'currency', 'category', 'description', 'type']
         }
@@ -161,7 +155,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(__dirname, 'dist');
+    const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
