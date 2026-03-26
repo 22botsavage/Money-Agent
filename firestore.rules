@@ -42,6 +42,10 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.email == 'super-admin@admin.com';
+    }
+
     function hasRequiredFields(fields) {
       return request.resource.data.keys().hasAll(fields);
     }
@@ -74,25 +78,25 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUser();
-      allow update: if isOwner(userId) && isValidUser() && request.resource.data.uid == resource.data.uid;
-      allow delete: if isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if (isOwner(userId) && isValidUser()) || isAdmin();
+      allow update: if (isOwner(userId) && isValidUser() && request.resource.data.uid == resource.data.uid) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
     }
 
     match /whatsapp_mappings/{whatsappNumber} {
       allow get: if true; // Allow the webhook to find the user ID
-      allow list: if false;
-      allow create, update: if isOwner(request.resource.data.userId);
-      allow delete: if isOwner(resource.data.userId);
+      allow list: if isAdmin();
+      allow create, update: if isOwner(request.resource.data.userId) || isAdmin();
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
     match /transactions/{transactionId} {
-      allow read: if isDocOwner();
+      allow read: if isDocOwner() || isAdmin();
       allow create: if (isAuthenticated() && isValidTransaction()) || 
-                       (request.resource.data.get('webhookSecret', '') == "ai-studio-webhook-secret-2026" && isValidTransaction());
-      allow update: if isDocOwner() && isValidTransaction() && request.resource.data.userId == resource.data.userId;
-      allow delete: if isDocOwner();
+                       (request.resource.data.get('webhookSecret', '') == "ai-studio-webhook-secret-2026" && isValidTransaction()) || isAdmin();
+      allow update: if (isDocOwner() && isValidTransaction() && request.resource.data.userId == resource.data.userId) || isAdmin();
+      allow delete: if isDocOwner() || isAdmin();
     }
   }
 }
