@@ -1,6 +1,7 @@
 import express from 'express';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import twilio from 'twilio';
 import { GoogleGenAI, Type } from '@google/genai';
 import path from 'path';
@@ -10,6 +11,30 @@ import { format } from 'date-fns';
 // Initialize Firebase Client SDK for server-side operations
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
+const auth = getAuth(firebaseApp);
+
+let isAdminAuthenticated = false;
+async function ensureAdminAuth() {
+  if (!isAdminAuthenticated) {
+    try {
+      await signInWithEmailAndPassword(auth, 'super-admin@admin.com', 'Admin12345');
+      isAdminAuthenticated = true;
+      console.log('✅ Server authenticated as super-admin');
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        try {
+          await createUserWithEmailAndPassword(auth, 'super-admin@admin.com', 'Admin12345');
+          isAdminAuthenticated = true;
+          console.log('✅ Server created and authenticated as super-admin');
+        } catch (createError) {
+          console.error('❌ Failed to create super-admin:', createError);
+        }
+      } else {
+        console.error('❌ Failed to authenticate server as super-admin:', error);
+      }
+    }
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -87,6 +112,9 @@ app.post('/api/webhook/twilio', async (req, res) => {
   const from = req.body.From; // e.g., 'whatsapp:+14155238886'
 
   try {
+    // 0. Ensure server is authenticated as admin to read Firestore data
+    await ensureAdminAuth();
+
     // 1. Find user by WhatsApp number using the mappings collection
     const mappingDoc = await getDoc(doc(db, 'whatsapp_mappings', from));
     
@@ -175,15 +203,29 @@ app.post('/api/webhook/twilio', async (req, res) => {
       if (tx.type === 'income') totalIncome += amount;
       else if (tx.type === 'expense') totalExpense += amount;
 
-      if (tx.date && tx.date.startsWith(todayStr)) {
-        if (tx.type === 'income') {
-          todayIncome += amount;
-        } else if (tx.type === 'expense') {
-          todayExpense += amount;
-          if (amount > biggestExpenseAmount) {
-            biggestExpenseAmount = amount;
-            biggestExpenseName = tx.category || tx.description;
+      if (tx.date) {
+        try {
+          // Convert transaction UTC date to WIB string for accurate comparison
+          const txDateWib = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Jakarta',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).format(new Date(tx.date));
+
+          if (txDateWib === todayStr) {
+            if (tx.type === 'income') {
+              todayIncome += amount;
+            } else if (tx.type === 'expense') {
+              todayExpense += amount;
+              if (amount > biggestExpenseAmount) {
+                biggestExpenseAmount = amount;
+                biggestExpenseName = tx.category || tx.description;
+              }
+            }
           }
+        } catch (e) {
+          console.error('Invalid date format in transaction:', tx.date);
         }
       }
     });
