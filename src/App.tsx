@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { auth, db, signInWithEmail, signUpWithEmail, logOut } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { Wallet, ArrowUpCircle, ArrowDownCircle, LogOut, MessageCircle } from 'lucide-react';
+import { Wallet, ArrowUpCircle, ArrowDownCircle, LogOut, MessageCircle, Trash2 } from 'lucide-react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -39,6 +39,23 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [authError, setAuthError] = useState('');
+
+  // Reset State
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleReset = async () => {
+    setIsResetting(true);
+    try {
+      const deletePromises = transactions.map(tx => deleteDoc(doc(db, 'transactions', tx.id)));
+      await Promise.all(deletePromises);
+      setIsResetModalOpen(false);
+    } catch (error) {
+      console.error("Error resetting data:", error);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -318,6 +335,13 @@ export default function App() {
               Example: <em className="text-blue-200">"I just spent Rp 50.000 on lunch"</em> or <em className="text-blue-200">"Got paid Rp 2.000.000 for freelance work"</em>
             </p>
           </div>
+          <button
+            onClick={() => setIsResetModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-900/50 rounded-xl transition-colors whitespace-nowrap text-sm font-medium"
+          >
+            <Trash2 size={16} />
+            Retest / Reset Data
+          </button>
         </div>
 
         {/* Summary Cards */}
@@ -424,6 +448,34 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Reset Modal */}
+      {isResetModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-100 mb-2">Reset All Data?</h3>
+            <p className="text-gray-400 mb-6 text-sm">
+              This will permanently delete all your transactions. Your balance will be reset to zero, and the "DAILY FINAN-CHECK" logs will start fresh. This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setIsResetModalOpen(false)}
+                disabled={isResetting}
+                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReset}
+                disabled={isResetting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
+              >
+                {isResetting ? 'Resetting...' : 'Yes, Reset Data'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
