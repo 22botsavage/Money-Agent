@@ -1,9 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { auth, db, signInWithEmail, signUpWithEmail, logOut } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Wallet, ArrowUpCircle, ArrowDownCircle, LogOut, MessageCircle } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
 
 interface Transaction {
   id: string;
@@ -127,6 +138,52 @@ export default function App() {
       setAuthError(err.message || "Authentication failed.");
     }
   };
+
+  const chartData = useMemo(() => {
+    // Group transactions by date
+    const grouped = transactions.reduce((acc, tx) => {
+      let dateStr = '';
+      try {
+        dateStr = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Jakarta',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).format(new Date(tx.date));
+      } catch (e) {
+        dateStr = tx.date ? tx.date.substring(0, 10) : new Date().toISOString().substring(0, 10);
+      }
+
+      if (!acc[dateStr]) {
+        acc[dateStr] = { date: dateStr, income: 0, expense: 0 };
+      }
+      if (tx.type === 'income') acc[dateStr].income += tx.amount;
+      else acc[dateStr].expense += tx.amount;
+      return acc;
+    }, {} as Record<string, { date: string, income: number, expense: number }>);
+
+    // Sort by date ascending
+    const sortedDates = Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
+    
+    // Calculate cumulative balance
+    let currentBalance = 0;
+    return sortedDates.map(day => {
+      currentBalance += (day.income - day.expense);
+      let displayDate = day.date;
+      try {
+        // Create a date object from YYYY-MM-DD (treat as local to avoid timezone shift)
+        const [y, m, d] = day.date.split('-');
+        displayDate = format(new Date(parseInt(y), parseInt(m) - 1, parseInt(d)), 'MMM dd');
+      } catch (e) {
+        // fallback
+      }
+      return {
+        ...day,
+        balance: currentBalance,
+        displayDate
+      };
+    });
+  }, [transactions]);
 
   if (!isAuthReady || loading) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-100">Loading...</div>;
@@ -286,6 +343,43 @@ export default function App() {
             <h3 className="text-2xl font-bold text-gray-100">Rp {totalExpense.toLocaleString('id-ID')}</h3>
           </div>
         </div>
+
+        {/* Interactive Chart */}
+        {chartData.length > 0 && (
+          <div className="bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-800 mb-8">
+            <h3 className="text-lg font-semibold text-gray-100 mb-6">Financial Overview</h3>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                  <XAxis 
+                    dataKey="displayDate" 
+                    stroke="#9CA3AF" 
+                    fontSize={12} 
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    stroke="#9CA3AF" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `Rp ${(value / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F3F4F6', borderRadius: '0.5rem' }}
+                    itemStyle={{ color: '#E5E7EB' }}
+                    formatter={(value: number) => [`Rp ${value.toLocaleString('id-ID')}`, undefined]}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar dataKey="income" name="Income" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="expense" name="Expense" fill="#EF4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Line type="monotone" dataKey="balance" name="Balance" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4, fill: '#3B82F6', strokeWidth: 2, stroke: '#1F2937' }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         {/* Recent Transactions */}
         <div className="bg-gray-900 rounded-2xl shadow-sm border border-gray-800 overflow-hidden">

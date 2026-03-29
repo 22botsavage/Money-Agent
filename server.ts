@@ -125,11 +125,42 @@ app.post('/api/webhook/twilio', async (req, res) => {
 
     const userId = mappingDoc.data().userId;
 
-    // 2. Process message with Gemini
+    // 2. Process message with Gemini (Text or Audio)
     const aiClient = getAI();
+    let contentsParts: any[] = [];
+
+    if (req.body.NumMedia && parseInt(req.body.NumMedia) > 0) {
+      // Handle Voice Message / Audio
+      const mediaUrl = req.body.MediaUrl0;
+      const mimeType = req.body.MediaContentType0;
+      
+      console.log(`🎤 Received media: ${mimeType} from ${mediaUrl}`);
+      
+      // Download the audio file from Twilio
+      const mediaResponse = await fetch(mediaUrl);
+      const arrayBuffer = await mediaResponse.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64Data = buffer.toString('base64');
+
+      contentsParts.push({
+        inlineData: {
+          data: base64Data,
+          mimeType: mimeType
+        }
+      });
+      contentsParts.push({ 
+        text: `Listen to this voice message and parse the financial transaction. Return JSON with amount (number), currency (string, default to IDR), category (string), description (string), type (string: 'expense' or 'income').` 
+      });
+    } else {
+      // Handle Text Message
+      contentsParts.push({ 
+        text: `Parse this financial transaction: "${incomingMsg}". Return JSON with amount (number), currency (string, default to IDR), category (string), description (string), type (string: 'expense' or 'income').` 
+      });
+    }
+
     const geminiResponse = await aiClient.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Parse this financial transaction: "${incomingMsg}". Return JSON with amount (number), currency (string, default to IDR), category (string), description (string), type (string: 'expense' or 'income').`,
+      contents: { parts: contentsParts },
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
