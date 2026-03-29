@@ -360,6 +360,54 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Recent Activity Feed */}
+      <div className="space-y-6">
+        <h3 className="text-md font-bold font-headline">Activity</h3>
+        <div className="space-y-6 relative before:absolute before:left-4 before:top-2 before:bottom-0 before:w-px before:bg-surface-container">
+          <div className="relative pl-10">
+            <div className="absolute left-0 top-0 w-8 h-8 rounded-full overflow-hidden border-2 border-white bg-white z-10 shadow-sm">
+              <img alt="Activity Actor 1" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiBDRww5KjV0sEIxJdZAtxiz3de3-jVeQTdJkeMuIdPe9u6H6DcQJpX__Lo2RNB3FSpViw0Vhmd3_UkwWmFuK9HqVzdtlopOvZLcVKAf0DHpwVjczVPej96wz_Fof0oBpWqySsQcsCft6ZchTOEeKbAmrvMh2s3A_4PCXYqwOjrFYw-BXD5MqhaFlrYLJC_9aZ9IYU_XfQUCoL3e111uLa_LXNxN1W-K2arSp3js32-RE0g3rOn0XD9PKCp9Y74--MYBxHtdZu_UYj"/>
+            </div>
+            <div>
+              <p className="text-xs"><span className="font-bold">Marcus Thorne</span> initiated a wire transfer of <span className="font-bold">$25,000</span>.</p>
+              <p className="text-[10px] text-outline mt-1 font-medium">10 mins ago</p>
+            </div>
+          </div>
+          <div className="relative pl-10">
+            <div className="absolute left-0 top-0 w-8 h-8 rounded-full overflow-hidden border-2 border-white bg-white z-10 shadow-sm flex items-center justify-center bg-primary text-white">
+              <span className="material-symbols-outlined text-sm">security</span>
+            </div>
+            <div>
+              <p className="text-xs">System security audit completed. All assets are <span className="text-primary font-bold">100% verified</span>.</p>
+              <p className="text-[10px] text-outline mt-1 font-medium">2 hours ago</p>
+            </div>
+          </div>
+          <div className="relative pl-10">
+            <div className="absolute left-0 top-0 w-8 h-8 rounded-full overflow-hidden border-2 border-white bg-white z-10 shadow-sm">
+              <img alt="Activity Actor 2" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0nWk3LImKs9P6LKtPuGfmjzlYNMNY7sf2UyfUDgIJKuh8C9t6Jb5efol4DdZhuU4Z4oKaC3Qm4Qo9qrd-0QBAkgbkF8lJFmQil0ryf1VB1Rw6GuF6ZllBcUNfEHnD1GEFBmdypEAjDgdK3uttxwWjKYT8y8t9kFGVKhL6hsQBTO5UNfBf5cEKzGikmedPaaPlHqpmnI16RiDCLbgE39JtLEFUKdDutlcTUVg7ddy0kb3A3eGeZuuUtZGoq4tzyaR8YVl73ufqPXb_"/>
+            </div>
+            <div>
+              <p className="text-xs"><span className="font-bold">Advisor Elena</span> shared a new Investment Report.</p>
+              <button className="mt-2 flex items-center gap-2 bg-surface-container rounded-lg px-3 py-1.5 group hover:bg-surface-container-high transition-colors">
+                <span className="material-symbols-outlined text-[14px]">description</span>
+                <span className="text-[10px] font-bold">Q3_Outlook.pdf</span>
+              </button>
+              <p className="text-[10px] text-outline mt-1 font-medium">5 hours ago</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Promotion / Secondary CTA */}
+      <div className="bg-surface-container rounded-xl p-6 text-center">
+        <span className="material-symbols-outlined text-primary text-3xl mb-2">auto_awesome</span>
+        <h4 className="text-sm font-bold font-headline mb-2">Upgrade to Platinum</h4>
+        <p className="text-[10px] text-outline mb-4 leading-relaxed">Unlock 24/7 concierge support and lower transaction fees.</p>
+        <button className="w-full py-2 bg-on-surface text-white text-xs font-bold rounded-full hover:shadow-lg transition-all">
+          Explore Benefits
+        </button>
+      </div>
     </div>
   );
 
