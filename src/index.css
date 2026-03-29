@@ -1,1 +1,78 @@
 @import "tailwindcss";
+
+@theme {
+  --color-surface-container-highest: #e0e3e1;
+  --color-on-primary: #ffffff;
+  --color-primary-fixed: #a2f4c7;
+  --color-on-error-container: #93000a;
+  --color-tertiary-container: #af5c5f;
+  --color-secondary-fixed: #c7eadb;
+  --color-secondary: #456559;
+  --color-secondary-container: #c4e8d8;
+  --color-on-tertiary: #ffffff;
+  --color-on-background: #181c1b;
+  --color-primary-fixed-dim: #86d7ac;
+  --color-error: #ba1a1a;
+  --color-inverse-on-surface: #eef1ef;
+  --color-tertiary-fixed: #ffdad9;
+  --color-on-primary-fixed-variant: #005235;
+  --color-secondary-fixed-dim: #abcebf;
+  --color-error-container: #ffdad6;
+  --color-tertiary: #914448;
+  --color-on-error: #ffffff;
+  --color-on-secondary: #ffffff;
+  --color-surface-dim: #d7dbd9;
+  --color-tertiary-fixed-dim: #ffb3b4;
+  --color-surface: #f7faf8;
+  --color-inverse-surface: #2d3130;
+  --color-background: #f7faf8;
+  --color-surface-container-low: #f1f4f2;
+  --color-on-tertiary-fixed: #3d040c;
+  --color-on-tertiary-container: #fffbff;
+  --color-on-secondary-fixed: #002117;
+  --color-on-surface: #181c1b;
+  --color-on-primary-container: #f6fff6;
+  --color-surface-variant: #e0e3e1;
+  --color-outline-variant: #bec9c0;
+  --color-surface-tint: #126c48;
+  --color-surface-container-lowest: #ffffff;
+  --color-primary: #0d6946;
+  --color-on-tertiary-fixed-variant: #773034;
+  --color-surface-container: #ebefed;
+  --color-on-secondary-fixed-variant: #2d4d42;
+  --color-outline: #6f7a72;
+  --color-on-primary-fixed: #002113;
+  --color-on-surface-variant: #3f4942;
+  --color-surface-container-high: #e6e9e7;
+  --color-primary-container: #31835d;
+  --color-on-secondary-container: #49695d;
+  --color-surface-bright: #f7faf8;
+  --color-inverse-primary: #86d7ac;
+
+  --font-headline: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+}
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.primary-gradient {
+    background: linear-gradient(135deg, #0d6946 0%, #31835d 100%);
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-outline-variant);
+    border-radius: 4px;
+}
