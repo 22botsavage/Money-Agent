@@ -95,7 +95,28 @@ function getTwilioClient() {
 }
 
 // Helper to send WhatsApp message using TwiML (works without auth credentials for replies)
-async function sendWhatsAppMessage(to: string, body: string, res: express.Response) {
+async function sendWhatsAppMessage(to: string, body: string, res: express.Response, fromNumber: string = 'whatsapp:+14155238886') {
+  const client = getTwilioClient();
+  
+  if (client) {
+    try {
+      // Use REST API to send message (more reliable, avoids 15s webhook timeout drops)
+      await client.messages.create({
+        from: fromNumber, // Twilio Sandbox Number
+        to: to,
+        body: body
+      });
+      console.log('✅ Sent WhatsApp message via REST API');
+      if (!res.headersSent) {
+        res.status(200).send('<Response></Response>'); // Empty TwiML to acknowledge
+      }
+      return;
+    } catch (error) {
+      console.error('❌ Failed to send via REST API, falling back to TwiML:', error);
+    }
+  }
+
+  // Fallback to TwiML
   const response = new twilio.twiml.MessagingResponse();
   response.message(body);
   if (!res.headersSent) {
@@ -119,7 +140,7 @@ app.post('/api/webhook/twilio', async (req, res) => {
     const mappingDoc = await getDoc(doc(db, 'whatsapp_mappings', from));
     
     if (!mappingDoc.exists()) {
-      await sendWhatsAppMessage(from, `Welcome to Money Manager! Please register your WhatsApp number (${from}) on the dashboard first.`, res);
+      await sendWhatsAppMessage(from, `Welcome to Money Manager! Please register your WhatsApp number (${from}) on the dashboard first.`, res, req.body.To);
       return;
     }
 
@@ -137,7 +158,21 @@ app.post('/api/webhook/twilio', async (req, res) => {
       console.log(`🎤 Received media: ${mimeType} from ${mediaUrl}`);
       
       // Download the audio file from Twilio
-      const mediaResponse = await fetch(mediaUrl);
+      const sid = process.env.TWILIO_ACCOUNT_SID;
+      const token = process.env.TWILIO_AUTH_TOKEN;
+      const headers: Record<string, string> = {};
+      
+      if (sid && token) {
+        headers['Authorization'] = 'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64');
+      }
+
+      const mediaResponse = await fetch(mediaUrl, { headers });
+      
+      if (!mediaResponse.ok) {
+        console.error(`Failed to fetch media: ${mediaResponse.status} ${mediaResponse.statusText}`);
+        throw new Error('Failed to download voice message from Twilio.');
+      }
+      
       const arrayBuffer = await mediaResponse.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const base64Data = buffer.toString('base64');
@@ -270,12 +305,12 @@ app.post('/api/webhook/twilio', async (req, res) => {
     const replyMessage = `📉 DAILY FINAN-CHECK\n\nUser: ${userEmail}\nDate: ${displayDate}\n\n💰 IN: ${formatIdr(todayIncome)}\n💸 OUT: ${formatIdr(todayExpense)}\n🏦 BALANCE: ${formatIdr(totalBalance)}\n\n⚠️ RECAP: ${formatIdr(budgetLeft)}\n🚩 LEAK: ${biggestExpenseName} - ${formatIdr(biggestExpenseAmount)}\n\nThink before you spend.`;
 
     // 5. Send confirmation back
-    await sendWhatsAppMessage(from, replyMessage, res);
+    await sendWhatsAppMessage(from, replyMessage, res, req.body.To);
 
   } catch (error) {
     console.error('Error processing webhook:', error);
     if (!res.headersSent) {
-      await sendWhatsAppMessage(from, 'Sorry, I had trouble processing that. Please try again.', res);
+      await sendWhatsAppMessage(from, 'Sorry, I had trouble processing that. Please try again.', res, req.body.To);
     }
   }
 });
