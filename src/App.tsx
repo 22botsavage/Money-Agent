@@ -31,6 +31,7 @@ export default function App() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Auth Form State
   const [email, setEmail] = useState('');
@@ -220,7 +221,7 @@ export default function App() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface p-4 font-body text-on-surface">
-        <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-xl shadow-emerald-900/5 max-w-md w-full border border-surface-container">
+        <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-xl shadow-emerald-900/5 max-w-md w-full border border-surface-container">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-primary font-headline tracking-tight">Atmospheric Trust</h1>
             <p className="text-xs uppercase tracking-widest text-outline font-medium mt-1">Private Wealth</p>
@@ -280,7 +281,7 @@ export default function App() {
   if (!isRegistered) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface p-4 font-body text-on-surface">
-        <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-xl shadow-emerald-900/5 max-w-md w-full border border-surface-container">
+        <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-xl shadow-emerald-900/5 max-w-md w-full border border-surface-container">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-3xl">chat</span>
@@ -318,13 +319,82 @@ export default function App() {
   const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + (curr.amount || 0), 0);
   const balance = totalIncome - totalExpense;
 
+  const renderRightPanel = () => (
+    <div className="space-y-8">
+      {/* WhatsApp Setup & Reset */}
+      <div className="bg-surface-container rounded-xl p-6 text-center">
+        <span className="material-symbols-outlined text-primary text-3xl mb-2">chat</span>
+        <h4 className="text-sm font-bold font-headline mb-2">WhatsApp Connected</h4>
+        <p className="text-[10px] text-outline mb-4 leading-relaxed">
+          Send voice notes or text to <strong className="text-on-surface">{whatsappNumber}</strong> to record transactions automatically.
+        </p>
+        <button onClick={() => setIsResetModalOpen(true)} className="w-full py-2 bg-error/10 text-error text-xs font-bold rounded-full hover:bg-error/20 transition-all flex items-center justify-center gap-2">
+          <span className="material-symbols-outlined text-[16px]">delete</span>
+          Reset Data
+        </button>
+      </div>
+
+      {/* Statistics Card: Donut Chart */}
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h3 className="text-md font-bold font-headline">Allocation</h3>
+          <button className="text-primary"><span className="material-symbols-outlined">more_horiz</span></button>
+        </div>
+        <div className="relative w-48 h-48 mx-auto flex items-center justify-center">
+          {/* SVG Donut Chart Mockup */}
+          <svg className="w-full h-full transform -rotate-90">
+            <circle cx="96" cy="96" fill="transparent" r="70" stroke="#ebefed" strokeWidth="24"></circle>
+            <circle cx="96" cy="96" fill="transparent" r="70" stroke="#0d6946" strokeDasharray="439.8" strokeDashoffset="110" strokeWidth="24"></circle>
+            <circle cx="96" cy="96" fill="transparent" r="70" stroke="#31835d" strokeDasharray="439.8" strokeDashoffset="300" strokeWidth="24"></circle>
+            <circle cx="96" cy="96" fill="transparent" r="70" stroke="#af5c5f" strokeDasharray="439.8" strokeDashoffset="400" strokeWidth="24"></circle>
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <p className="text-[10px] text-outline font-bold uppercase tracking-widest">Total</p>
+            <p className="text-lg font-extrabold font-headline">100%</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary"></div>
+            <span className="text-xs font-medium text-outline">Real Estate</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary-container"></div>
+            <span className="text-xs font-medium text-outline">Stocks</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-tertiary-container"></div>
+            <span className="text-xs font-medium text-outline">Crypto</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-surface-container-highest"></div>
+            <span className="text-xs font-medium text-outline">Cash</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="bg-surface font-body text-on-surface antialiased min-h-screen flex">
+    <div className="bg-surface font-body text-on-surface antialiased min-h-screen flex overflow-x-hidden">
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity" 
+          onClick={() => setIsMobileMenuOpen(false)} 
+        />
+      )}
+
       {/* Sidebar Layout */}
-      <aside className="h-screen w-64 fixed left-0 top-0 overflow-y-auto bg-emerald-50/50 flex flex-col p-4 space-y-2 z-50 border-r border-surface-container">
-        <div className="mb-8 px-4 py-2">
-          <h1 className="text-lg font-bold text-primary font-headline tracking-tight">Atmospheric Trust</h1>
-          <p className="text-[10px] uppercase tracking-widest text-primary/60 font-medium">Private Wealth</p>
+      <aside className={`fixed left-0 top-0 h-screen w-64 bg-surface-container-lowest lg:bg-emerald-50/50 flex flex-col p-4 space-y-2 z-50 border-r border-surface-container transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="mb-8 px-4 py-2 flex justify-between items-center">
+          <div>
+            <h1 className="text-lg font-bold text-primary font-headline tracking-tight">Atmospheric Trust</h1>
+            <p className="text-[10px] uppercase tracking-widest text-primary/60 font-medium">Private Wealth</p>
+          </div>
+          <button className="lg:hidden text-outline hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+            <span className="material-symbols-outlined">close</span>
+          </button>
         </div>
         <nav className="flex-1 space-y-1">
           <a className="flex items-center gap-3 px-4 py-3 text-primary font-semibold bg-white rounded-xl shadow-sm transition-transform duration-150 active:scale-95" href="#">
@@ -368,18 +438,21 @@ export default function App() {
       </aside>
 
       {/* Main Wrapper */}
-      <div className="ml-64 mr-[300px] min-h-screen w-full">
+      <div className="flex-1 flex flex-col w-full lg:ml-64 xl:mr-[300px] min-h-screen transition-all duration-300">
         {/* Top Navigation */}
-        <header className="fixed top-0 left-64 right-[300px] h-16 z-40 bg-white/80 backdrop-blur-xl shadow-sm shadow-emerald-900/5 flex justify-between items-center px-8">
-          <div className="flex items-center w-full max-w-md">
-            <div className="relative w-full">
+        <header className="fixed top-0 left-0 lg:left-64 right-0 xl:right-[300px] h-16 z-30 bg-white/80 backdrop-blur-xl shadow-sm shadow-emerald-900/5 flex justify-between items-center px-4 sm:px-8 transition-all duration-300">
+          <div className="flex items-center gap-4 w-full max-w-md">
+            <button className="lg:hidden text-outline hover:text-primary flex items-center justify-center" onClick={() => setIsMobileMenuOpen(true)}>
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+            <div className="relative w-full hidden sm:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
               <input className="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary/30 transition-all placeholder:text-outline-variant" placeholder="Search wealth assets, reports..." type="text"/>
             </div>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4">
-              <button className="text-outline hover:text-primary transition-colors">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <button className="text-outline hover:text-primary transition-colors hidden sm:block">
                 <span className="material-symbols-outlined">help_outline</span>
               </button>
               <button className="text-outline hover:text-primary transition-colors relative">
@@ -387,13 +460,13 @@ export default function App() {
                 <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
               </button>
             </div>
-            <div className="h-8 w-px bg-outline-variant/20 mx-2"></div>
+            <div className="h-8 w-px bg-outline-variant/20 mx-1 sm:mx-2"></div>
             <div className="flex items-center gap-3 group">
-              <div className="text-right hidden xl:block">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold font-headline text-on-surface leading-tight">{user.email?.split('@')[0]}</p>
                 <p className="text-[10px] text-outline font-medium">Private Tier Client</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white font-bold border-2 border-primary/10">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-container flex items-center justify-center text-white font-bold border-2 border-primary/10">
                 {user.email?.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -401,126 +474,123 @@ export default function App() {
         </header>
 
         {/* Main Content Area */}
-        <main className="pt-24 px-8 pb-12 space-y-8">
+        <main className="flex-1 pt-20 sm:pt-24 px-4 sm:px-8 pb-12 space-y-6 sm:space-y-8 max-w-[100vw] lg:max-w-none overflow-hidden">
           {/* Hero Section: Balance & Action Grid */}
-          <section className="grid grid-cols-12 gap-6">
+          <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Primary Balance Card */}
-            <div className="col-span-8 primary-gradient rounded-xl p-8 text-white relative overflow-hidden shadow-xl shadow-primary/20">
-              <div className="relative z-10 flex flex-col h-full justify-between">
-                <div className="flex justify-between items-start">
+            <div className="col-span-1 lg:col-span-8 primary-gradient rounded-xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-primary/20">
+              <div className="relative z-10 flex flex-col h-full justify-between min-h-[160px]">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div>
-                    <p className="text-primary-fixed/80 text-sm font-medium mb-1">Total Available Wealth</p>
-                    <h2 className="text-5xl font-extrabold font-headline tracking-tight">Rp {balance.toLocaleString('id-ID')}</h2>
+                    <p className="text-primary-fixed/80 text-xs sm:text-sm font-medium mb-1">Total Available Wealth</p>
+                    <h2 className="text-4xl sm:text-5xl font-extrabold font-headline tracking-tight">Rp {balance.toLocaleString('id-ID')}</h2>
                   </div>
-                  <span className="bg-white/10 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                  <span className="bg-white/10 backdrop-blur px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold flex items-center gap-1 self-start">
                     <span className="material-symbols-outlined text-[14px]">verified</span>
                     Secured Assets
                   </span>
                 </div>
-                <div className="mt-12 flex items-center gap-8">
+                <div className="mt-8 sm:mt-12 flex items-center gap-6 sm:gap-8">
                   <div>
-                    <p className="text-primary-fixed/60 text-[10px] uppercase font-bold tracking-widest mb-1">Portfolio Yield</p>
-                    <p className="text-xl font-bold font-headline">+12.4% <span className="text-sm font-normal opacity-70">y/y</span></p>
+                    <p className="text-primary-fixed/60 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1">Portfolio Yield</p>
+                    <p className="text-lg sm:text-xl font-bold font-headline">+12.4% <span className="text-xs sm:text-sm font-normal opacity-70">y/y</span></p>
                   </div>
-                  <div className="w-px h-10 bg-white/20"></div>
+                  <div className="w-px h-8 sm:h-10 bg-white/20"></div>
                   <div>
-                    <p className="text-primary-fixed/60 text-[10px] uppercase font-bold tracking-widest mb-1">Risk Profile</p>
-                    <p className="text-xl font-bold font-headline">Conservative</p>
+                    <p className="text-primary-fixed/60 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1">Risk Profile</p>
+                    <p className="text-lg sm:text-xl font-bold font-headline">Conservative</p>
                   </div>
                 </div>
               </div>
               {/* Aesthetic Background Detail */}
               <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
-                <span className="material-symbols-outlined text-[300px]">shield</span>
+                <span className="material-symbols-outlined text-[200px] sm:text-[300px]">shield</span>
               </div>
             </div>
 
             {/* Action Row Vertical */}
-            <div className="col-span-4 grid grid-cols-2 gap-4">
-              <button className="flex flex-col items-center justify-center gap-3 bg-surface-container-lowest rounded-xl p-4 hover:bg-surface-container transition-colors group">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                  <span className="material-symbols-outlined">add_circle</span>
+            <div className="col-span-1 lg:col-span-4 grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-2 gap-3 sm:gap-4">
+              <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                  <span className="material-symbols-outlined text-[20px] sm:text-[24px]">add_circle</span>
                 </div>
-                <span className="text-xs font-bold font-headline">Top Up</span>
+                <span className="text-[10px] sm:text-xs font-bold font-headline">Top Up</span>
               </button>
-              <button className="flex flex-col items-center justify-center gap-3 bg-surface-container-lowest rounded-xl p-4 hover:bg-surface-container transition-colors group">
-                <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
-                  <span className="material-symbols-outlined">swap_horiz</span>
+              <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
+                  <span className="material-symbols-outlined text-[20px] sm:text-[24px]">swap_horiz</span>
                 </div>
-                <span className="text-xs font-bold font-headline">Transfer</span>
+                <span className="text-[10px] sm:text-xs font-bold font-headline">Transfer</span>
               </button>
-              <button className="flex flex-col items-center justify-center gap-3 bg-surface-container-lowest rounded-xl p-4 hover:bg-surface-container transition-colors group">
-                <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-white transition-all">
-                  <span className="material-symbols-outlined">request_quote</span>
+              <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-white transition-all">
+                  <span className="material-symbols-outlined text-[20px] sm:text-[24px]">request_quote</span>
                 </div>
-                <span className="text-xs font-bold font-headline">Request</span>
+                <span className="text-[10px] sm:text-xs font-bold font-headline">Request</span>
               </button>
-              <button className="flex flex-col items-center justify-center gap-3 bg-surface-container-lowest rounded-xl p-4 hover:bg-surface-container transition-colors group">
-                <div className="w-12 h-12 rounded-full bg-outline/10 flex items-center justify-center text-outline group-hover:bg-on-surface group-hover:text-white transition-all">
-                  <span className="material-symbols-outlined">history</span>
+              <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-outline/10 flex items-center justify-center text-outline group-hover:bg-on-surface group-hover:text-white transition-all">
+                  <span className="material-symbols-outlined text-[20px] sm:text-[24px]">history</span>
                 </div>
-                <span className="text-xs font-bold font-headline">History</span>
+                <span className="text-[10px] sm:text-xs font-bold font-headline">History</span>
               </button>
             </div>
           </section>
 
           {/* Quick Stats Row */}
-          <section className="grid grid-cols-3 gap-6">
-            <div className="bg-surface-container-lowest p-6 rounded-xl flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-primary">
+          <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-primary shrink-0">
                 <span className="material-symbols-outlined">trending_up</span>
               </div>
-              <div>
-                <p className="text-xs font-medium text-outline">Total Income</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Total Income</p>
                 <div className="flex items-baseline gap-2">
-                  <h4 className="text-xl font-bold font-headline">Rp {totalIncome.toLocaleString('id-ID')}</h4>
-                  <span className="text-[10px] text-primary font-bold flex items-center">+4.2%</span>
+                  <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {totalIncome.toLocaleString('id-ID')}</h4>
                 </div>
               </div>
             </div>
-            <div className="bg-surface-container-lowest p-6 rounded-xl flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-error">
+            <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-50 flex items-center justify-center text-error shrink-0">
                 <span className="material-symbols-outlined">trending_down</span>
               </div>
-              <div>
-                <p className="text-xs font-medium text-outline">Total Expenses</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Total Expenses</p>
                 <div className="flex items-baseline gap-2">
-                  <h4 className="text-xl font-bold font-headline">Rp {totalExpense.toLocaleString('id-ID')}</h4>
-                  <span className="text-[10px] text-error font-bold flex items-center">-1.8%</span>
+                  <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {totalExpense.toLocaleString('id-ID')}</h4>
                 </div>
               </div>
             </div>
-            <div className="bg-surface-container-lowest p-6 rounded-xl flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
+            <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant shrink-0">
                 <span className="material-symbols-outlined">account_balance_wallet</span>
               </div>
-              <div>
-                <p className="text-xs font-medium text-outline">Net Savings</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Net Savings</p>
                 <div className="flex items-baseline gap-2">
-                  <h4 className="text-xl font-bold font-headline">Rp {balance.toLocaleString('id-ID')}</h4>
-                  <span className="text-[10px] text-primary font-bold flex items-center">+12%</span>
+                  <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {balance.toLocaleString('id-ID')}</h4>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Cashflow Chart & Transactions Asymmetric Grid */}
-          <section className="grid grid-cols-12 gap-6 items-start">
+          {/* Charts & Transactions */}
+          <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Monthly Cashflow */}
-            <div className="col-span-7 bg-surface-container-lowest p-8 rounded-xl h-[420px] flex flex-col">
-              <div className="flex justify-between items-center mb-8">
+            <div className="col-span-1 lg:col-span-7 bg-surface-container-lowest p-4 sm:p-8 rounded-xl h-[350px] sm:h-[420px] flex flex-col">
+              <div className="flex justify-between items-center mb-4 sm:mb-8">
                 <div>
-                  <h3 className="text-lg font-bold font-headline">Wealth Dynamics</h3>
-                  <p className="text-xs text-outline font-medium">Income vs expense analysis</p>
+                  <h3 className="text-base sm:text-lg font-bold font-headline">Wealth Dynamics</h3>
+                  <p className="text-[10px] sm:text-xs text-outline font-medium">Income vs expense analysis</p>
                 </div>
               </div>
-              <div className="flex-1 w-full h-full pb-2">
+              <div className="flex-1 w-full h-full pb-2 min-h-[200px]">
                 {chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ebefed" vertical={false} />
                       <XAxis dataKey="displayDate" stroke="#6f7a72" fontSize={10} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#6f7a72" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `Rp ${value / 1000}k`} />
+                      <YAxis stroke="#6f7a72" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `Rp ${value / 1000}k`} width={60} />
                       <Tooltip
                         contentStyle={{ backgroundColor: '#ffffff', borderColor: '#ebefed', borderRadius: '8px', fontSize: '12px' }}
                         itemStyle={{ color: '#181c1b' }}
@@ -537,28 +607,28 @@ export default function App() {
             </div>
 
             {/* Recent Transactions */}
-            <div className="col-span-5 bg-surface-container-lowest p-8 rounded-xl h-[420px] overflow-hidden flex flex-col">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold font-headline">Transactions</h3>
-                <a className="text-xs font-bold text-primary hover:underline" href="#">View All</a>
+            <div className="col-span-1 lg:col-span-5 bg-surface-container-lowest p-4 sm:p-8 rounded-xl h-[400px] sm:h-[420px] overflow-hidden flex flex-col">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-bold font-headline">Transactions</h3>
+                <a className="text-[10px] sm:text-xs font-bold text-primary hover:underline" href="#">View All</a>
               </div>
-              <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-4 sm:space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 {transactions.slice(0, 10).map(tx => (
                   <div key={tx.id} className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'income' ? 'bg-primary-container/20 text-primary' : 'bg-error-container/50 text-error'}`}>
-                        <span className="material-symbols-outlined">{tx.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
+                    <div className="flex items-center gap-3 min-w-0 pr-2">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'income' ? 'bg-primary-container/20 text-primary' : 'bg-error-container/50 text-error'}`}>
+                        <span className="material-symbols-outlined text-[18px] sm:text-[24px]">{tx.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold font-headline">{tx.category || 'Transaction'}</p>
-                        <p className="text-[10px] text-outline">{format(new Date(tx.date), 'MMM dd, yyyy')} • {tx.description}</p>
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-bold font-headline truncate">{tx.category || 'Transaction'}</p>
+                        <p className="text-[9px] sm:text-[10px] text-outline truncate">{format(new Date(tx.date), 'MMM dd, yyyy')} • {tx.description}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-bold ${tx.type === 'income' ? 'text-primary' : 'text-error'}`}>
+                    <div className="text-right shrink-0">
+                      <p className={`text-xs sm:text-sm font-bold ${tx.type === 'income' ? 'text-primary' : 'text-error'}`}>
                         {tx.type === 'income' ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
                       </p>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${tx.type === 'income' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container'}`}>
+                      <span className={`text-[8px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold inline-block mt-1 ${tx.type === 'income' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container'}`}>
                         Completed
                       </span>
                     </div>
@@ -570,63 +640,18 @@ export default function App() {
               </div>
             </div>
           </section>
+
+          {/* Mobile/Tablet Right Panel Content */}
+          <section className="xl:hidden pt-8 border-t border-surface-container">
+            {renderRightPanel()}
+          </section>
         </main>
       </div>
 
-      {/* Right Panel */}
-      <aside className="fixed right-0 top-0 h-screen w-[300px] bg-white shadow-xl shadow-emerald-950/5 p-6 overflow-y-auto border-l border-surface-container z-40">
-        <div className="mt-20 space-y-8">
-          {/* WhatsApp Setup & Reset */}
-          <div className="bg-surface-container rounded-xl p-6 text-center">
-            <span className="material-symbols-outlined text-primary text-3xl mb-2">chat</span>
-            <h4 className="text-sm font-bold font-headline mb-2">WhatsApp Connected</h4>
-            <p className="text-[10px] text-outline mb-4 leading-relaxed">
-              Send voice notes or text to <strong className="text-on-surface">{whatsappNumber}</strong> to record transactions automatically.
-            </p>
-            <button onClick={() => setIsResetModalOpen(true)} className="w-full py-2 bg-error/10 text-error text-xs font-bold rounded-full hover:bg-error/20 transition-all flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">delete</span>
-              Reset Data
-            </button>
-          </div>
-
-          {/* Statistics Card: Donut Chart */}
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-md font-bold font-headline">Allocation</h3>
-              <button className="text-primary"><span className="material-symbols-outlined">more_horiz</span></button>
-            </div>
-            <div className="relative w-48 h-48 mx-auto flex items-center justify-center">
-              {/* SVG Donut Chart Mockup */}
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="96" cy="96" fill="transparent" r="70" stroke="#ebefed" strokeWidth="24"></circle>
-                <circle cx="96" cy="96" fill="transparent" r="70" stroke="#0d6946" strokeDasharray="439.8" strokeDashoffset="110" strokeWidth="24"></circle>
-                <circle cx="96" cy="96" fill="transparent" r="70" stroke="#31835d" strokeDasharray="439.8" strokeDashoffset="300" strokeWidth="24"></circle>
-                <circle cx="96" cy="96" fill="transparent" r="70" stroke="#af5c5f" strokeDasharray="439.8" strokeDashoffset="400" strokeWidth="24"></circle>
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-[10px] text-outline font-bold uppercase tracking-widest">Total</p>
-                <p className="text-lg font-extrabold font-headline">100%</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                <span className="text-xs font-medium text-outline">Real Estate</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary-container"></div>
-                <span className="text-xs font-medium text-outline">Stocks</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-tertiary-container"></div>
-                <span className="text-xs font-medium text-outline">Crypto</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-surface-container-highest"></div>
-                <span className="text-xs font-medium text-outline">Cash</span>
-              </div>
-            </div>
-          </div>
+      {/* Desktop Right Panel */}
+      <aside className="hidden xl:block fixed right-0 top-0 h-screen w-[300px] bg-white shadow-xl shadow-emerald-950/5 p-6 overflow-y-auto border-l border-surface-container z-20">
+        <div className="mt-20">
+          {renderRightPanel()}
         </div>
       </aside>
 
