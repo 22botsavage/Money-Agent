@@ -32,6 +32,7 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Auth Form State
   const [email, setEmail] = useState('');
@@ -321,19 +322,6 @@ export default function App() {
 
   const renderRightPanel = () => (
     <div className="space-y-8">
-      {/* WhatsApp Setup & Reset */}
-      <div className="bg-surface-container rounded-xl p-6 text-center">
-        <span className="material-symbols-outlined text-primary text-3xl mb-2">chat</span>
-        <h4 className="text-sm font-bold font-headline mb-2">WhatsApp Connected</h4>
-        <p className="text-[10px] text-outline mb-4 leading-relaxed">
-          Send voice notes or text to <strong className="text-on-surface">{whatsappNumber}</strong> to record transactions automatically.
-        </p>
-        <button onClick={() => setIsResetModalOpen(true)} className="w-full py-2 bg-error/10 text-error text-xs font-bold rounded-full hover:bg-error/20 transition-all flex items-center justify-center gap-2">
-          <span className="material-symbols-outlined text-[16px]">delete</span>
-          Reset Data
-        </button>
-      </div>
-
       {/* Statistics Card: Donut Chart */}
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -375,6 +363,85 @@ export default function App() {
     </div>
   );
 
+  const renderSettings = () => (
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
+      <div>
+        <h2 className="text-2xl font-bold font-headline text-on-surface">Settings</h2>
+        <p className="text-sm text-outline mt-1">Manage your account, integrations, and data.</p>
+      </div>
+
+      <div className="bg-surface-container-lowest border border-surface-container rounded-2xl p-6 sm:p-8 space-y-8 shadow-sm">
+        {/* Profile Section */}
+        <div>
+          <h3 className="text-lg font-bold font-headline mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">person</span>
+            Profile Information
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Email Address</label>
+              <p className="text-sm font-medium text-on-surface">{user.email}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Account Tier</label>
+              <p className="text-sm font-medium text-on-surface">Private Tier Client</p>
+            </div>
+          </div>
+        </div>
+
+        <hr className="border-surface-container" />
+
+        {/* Integrations Section */}
+        <div>
+          <h3 className="text-lg font-bold font-headline mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">integration_instructions</span>
+            Integrations
+          </h3>
+          <div className="bg-primary-container/10 border border-primary/20 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                <span className="material-symbols-outlined">chat</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold font-headline text-on-surface">WhatsApp Connected</h4>
+                <p className="text-xs text-outline mt-1">
+                  Receiving transactions from <strong className="text-on-surface">{whatsappNumber}</strong>
+                </p>
+              </div>
+            </div>
+            <span className="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold rounded-full uppercase tracking-widest">Active</span>
+          </div>
+        </div>
+
+        <hr className="border-surface-container" />
+
+        {/* Data Management Section */}
+        <div>
+          <h3 className="text-lg font-bold font-headline mb-4 flex items-center gap-2 text-error">
+            <span className="material-symbols-outlined">warning</span>
+            Danger Zone
+          </h3>
+          <div className="bg-error-container/30 border border-error/20 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h4 className="text-sm font-bold font-headline text-on-surface">Reset All Data</h4>
+              <p className="text-xs text-outline mt-1 max-w-md">
+                Permanently delete all your transactions. Your balance will be reset to zero. This action cannot be undone.
+              </p>
+            </div>
+            <button 
+              onClick={() => setIsResetModalOpen(true)} 
+              className="px-4 py-2 bg-error text-white text-xs font-bold rounded-xl hover:bg-error/90 transition-all flex items-center gap-2 shrink-0 shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+              Reset Data
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-surface font-body text-on-surface antialiased min-h-screen flex overflow-x-hidden">
       {/* Mobile Overlay */}
@@ -397,10 +464,10 @@ export default function App() {
           </button>
         </div>
         <nav className="flex-1 space-y-1">
-          <a className="flex items-center gap-3 px-4 py-3 text-primary font-semibold bg-white rounded-xl shadow-sm transition-transform duration-150 active:scale-95" href="#">
+          <button onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'dashboard' ? 'text-primary font-semibold bg-white shadow-sm' : 'text-outline hover:text-primary hover:bg-emerald-100/50'}`}>
             <span className="material-symbols-outlined">dashboard</span>
             <span className="text-sm font-label font-medium">Dashboard</span>
-          </a>
+          </button>
           <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-colors hover:bg-emerald-100/50 rounded-xl" href="#">
             <span className="material-symbols-outlined">payments</span>
             <span className="text-sm font-label font-medium">Payments</span>
@@ -426,10 +493,10 @@ export default function App() {
         </div>
 
         <div className="pt-4 border-t border-emerald-900/5 space-y-1">
-          <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-colors" href="#">
+          <button onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'settings' ? 'text-primary font-semibold bg-white shadow-sm' : 'text-outline hover:text-primary hover:bg-emerald-100/50'}`}>
             <span className="material-symbols-outlined">settings</span>
             <span className="text-sm font-label font-medium">Settings</span>
-          </a>
+          </button>
           <button onClick={logOut} className="w-full flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-colors">
             <span className="material-symbols-outlined">logout</span>
             <span className="text-sm font-label font-medium">Logout</span>
@@ -475,176 +542,182 @@ export default function App() {
 
         {/* Main Content Area */}
         <main className="flex-1 pt-20 sm:pt-24 px-4 sm:px-8 pb-12 space-y-6 sm:space-y-8 max-w-[100vw] lg:max-w-none overflow-hidden">
-          {/* Hero Section: Balance & Action Grid */}
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Primary Balance Card */}
-            <div className="col-span-1 lg:col-span-8 primary-gradient rounded-xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-primary/20">
-              <div className="relative z-10 flex flex-col h-full justify-between min-h-[160px]">
-                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                  <div>
-                    <p className="text-primary-fixed/80 text-xs sm:text-sm font-medium mb-1">Total Available Wealth</p>
-                    <h2 className="text-4xl sm:text-5xl font-extrabold font-headline tracking-tight">Rp {balance.toLocaleString('id-ID')}</h2>
-                  </div>
-                  <span className="bg-white/10 backdrop-blur px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold flex items-center gap-1 self-start">
-                    <span className="material-symbols-outlined text-[14px]">verified</span>
-                    Secured Assets
-                  </span>
-                </div>
-                <div className="mt-8 sm:mt-12 flex items-center gap-6 sm:gap-8">
-                  <div>
-                    <p className="text-primary-fixed/60 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1">Portfolio Yield</p>
-                    <p className="text-lg sm:text-xl font-bold font-headline">+12.4% <span className="text-xs sm:text-sm font-normal opacity-70">y/y</span></p>
-                  </div>
-                  <div className="w-px h-8 sm:h-10 bg-white/20"></div>
-                  <div>
-                    <p className="text-primary-fixed/60 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1">Risk Profile</p>
-                    <p className="text-lg sm:text-xl font-bold font-headline">Conservative</p>
-                  </div>
-                </div>
-              </div>
-              {/* Aesthetic Background Detail */}
-              <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
-                <span className="material-symbols-outlined text-[200px] sm:text-[300px]">shield</span>
-              </div>
-            </div>
-
-            {/* Action Row Vertical */}
-            <div className="col-span-1 lg:col-span-4 grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-2 gap-3 sm:gap-4">
-              <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                  <span className="material-symbols-outlined text-[20px] sm:text-[24px]">add_circle</span>
-                </div>
-                <span className="text-[10px] sm:text-xs font-bold font-headline">Top Up</span>
-              </button>
-              <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
-                  <span className="material-symbols-outlined text-[20px] sm:text-[24px]">swap_horiz</span>
-                </div>
-                <span className="text-[10px] sm:text-xs font-bold font-headline">Transfer</span>
-              </button>
-              <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-white transition-all">
-                  <span className="material-symbols-outlined text-[20px] sm:text-[24px]">request_quote</span>
-                </div>
-                <span className="text-[10px] sm:text-xs font-bold font-headline">Request</span>
-              </button>
-              <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-outline/10 flex items-center justify-center text-outline group-hover:bg-on-surface group-hover:text-white transition-all">
-                  <span className="material-symbols-outlined text-[20px] sm:text-[24px]">history</span>
-                </div>
-                <span className="text-[10px] sm:text-xs font-bold font-headline">History</span>
-              </button>
-            </div>
-          </section>
-
-          {/* Quick Stats Row */}
-          <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-primary shrink-0">
-                <span className="material-symbols-outlined">trending_up</span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Total Income</p>
-                <div className="flex items-baseline gap-2">
-                  <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {totalIncome.toLocaleString('id-ID')}</h4>
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-50 flex items-center justify-center text-error shrink-0">
-                <span className="material-symbols-outlined">trending_down</span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Total Expenses</p>
-                <div className="flex items-baseline gap-2">
-                  <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {totalExpense.toLocaleString('id-ID')}</h4>
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant shrink-0">
-                <span className="material-symbols-outlined">account_balance_wallet</span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Net Savings</p>
-                <div className="flex items-baseline gap-2">
-                  <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {balance.toLocaleString('id-ID')}</h4>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Charts & Transactions */}
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Monthly Cashflow */}
-            <div className="col-span-1 lg:col-span-7 bg-surface-container-lowest p-4 sm:p-8 rounded-xl h-[350px] sm:h-[420px] flex flex-col">
-              <div className="flex justify-between items-center mb-4 sm:mb-8">
-                <div>
-                  <h3 className="text-base sm:text-lg font-bold font-headline">Wealth Dynamics</h3>
-                  <p className="text-[10px] sm:text-xs text-outline font-medium">Income vs expense analysis</p>
-                </div>
-              </div>
-              <div className="flex-1 w-full h-full pb-2 min-h-[200px]">
-                {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ebefed" vertical={false} />
-                      <XAxis dataKey="displayDate" stroke="#6f7a72" fontSize={10} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#6f7a72" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `Rp ${value / 1000}k`} width={60} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#ffffff', borderColor: '#ebefed', borderRadius: '8px', fontSize: '12px' }}
-                        itemStyle={{ color: '#181c1b' }}
-                      />
-                      <Bar dataKey="income" fill="#0d6946" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                      <Bar dataKey="expense" fill="#af5c5f" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                      <Line type="monotone" dataKey="balance" stroke="#31835d" strokeWidth={3} dot={{ r: 4, fill: '#31835d', strokeWidth: 2, stroke: '#ffffff' }} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-outline text-sm">No data available</div>
-                )}
-              </div>
-            </div>
-
-            {/* Recent Transactions */}
-            <div className="col-span-1 lg:col-span-5 bg-surface-container-lowest p-4 sm:p-8 rounded-xl h-[400px] sm:h-[420px] overflow-hidden flex flex-col">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-base sm:text-lg font-bold font-headline">Transactions</h3>
-                <a className="text-[10px] sm:text-xs font-bold text-primary hover:underline" href="#">View All</a>
-              </div>
-              <div className="space-y-4 sm:space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                {transactions.slice(0, 10).map(tx => (
-                  <div key={tx.id} className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3 min-w-0 pr-2">
-                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'income' ? 'bg-primary-container/20 text-primary' : 'bg-error-container/50 text-error'}`}>
-                        <span className="material-symbols-outlined text-[18px] sm:text-[24px]">{tx.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Hero Section: Balance & Action Grid */}
+              <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-300">
+                {/* Primary Balance Card */}
+                <div className="col-span-1 lg:col-span-8 primary-gradient rounded-xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-primary/20">
+                  <div className="relative z-10 flex flex-col h-full justify-between min-h-[160px]">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                      <div>
+                        <p className="text-primary-fixed/80 text-xs sm:text-sm font-medium mb-1">Total Available Wealth</p>
+                        <h2 className="text-4xl sm:text-5xl font-extrabold font-headline tracking-tight">Rp {balance.toLocaleString('id-ID')}</h2>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-bold font-headline truncate">{tx.category || 'Transaction'}</p>
-                        <p className="text-[9px] sm:text-[10px] text-outline truncate">{format(new Date(tx.date), 'MMM dd, yyyy')} • {tx.description}</p>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className={`text-xs sm:text-sm font-bold ${tx.type === 'income' ? 'text-primary' : 'text-error'}`}>
-                        {tx.type === 'income' ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
-                      </p>
-                      <span className={`text-[8px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold inline-block mt-1 ${tx.type === 'income' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container'}`}>
-                        Completed
+                      <span className="bg-white/10 backdrop-blur px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold flex items-center gap-1 self-start">
+                        <span className="material-symbols-outlined text-[14px]">verified</span>
+                        Secured Assets
                       </span>
                     </div>
+                    <div className="mt-8 sm:mt-12 flex items-center gap-6 sm:gap-8">
+                      <div>
+                        <p className="text-primary-fixed/60 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1">Portfolio Yield</p>
+                        <p className="text-lg sm:text-xl font-bold font-headline">+12.4% <span className="text-xs sm:text-sm font-normal opacity-70">y/y</span></p>
+                      </div>
+                      <div className="w-px h-8 sm:h-10 bg-white/20"></div>
+                      <div>
+                        <p className="text-primary-fixed/60 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1">Risk Profile</p>
+                        <p className="text-lg sm:text-xl font-bold font-headline">Conservative</p>
+                      </div>
+                    </div>
                   </div>
-                ))}
-                {transactions.length === 0 && (
-                  <div className="text-center text-outline text-sm mt-10">No transactions yet.</div>
-                )}
-              </div>
-            </div>
-          </section>
+                  {/* Aesthetic Background Detail */}
+                  <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
+                    <span className="material-symbols-outlined text-[200px] sm:text-[300px]">shield</span>
+                  </div>
+                </div>
 
-          {/* Mobile/Tablet Right Panel Content */}
-          <section className="xl:hidden pt-8 border-t border-surface-container">
-            {renderRightPanel()}
-          </section>
+                {/* Action Row Vertical */}
+                <div className="col-span-1 lg:col-span-4 grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-2 gap-3 sm:gap-4">
+                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">add_circle</span>
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-bold font-headline">Top Up</span>
+                  </button>
+                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
+                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">swap_horiz</span>
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-bold font-headline">Transfer</span>
+                  </button>
+                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-white transition-all">
+                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">request_quote</span>
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-bold font-headline">Request</span>
+                  </button>
+                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-outline/10 flex items-center justify-center text-outline group-hover:bg-on-surface group-hover:text-white transition-all">
+                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">history</span>
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-bold font-headline">History</span>
+                  </button>
+                </div>
+              </section>
+
+              {/* Quick Stats Row */}
+              <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 animate-in fade-in duration-300">
+                <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-primary shrink-0">
+                    <span className="material-symbols-outlined">trending_up</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Total Income</p>
+                    <div className="flex items-baseline gap-2">
+                      <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {totalIncome.toLocaleString('id-ID')}</h4>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-50 flex items-center justify-center text-error shrink-0">
+                    <span className="material-symbols-outlined">trending_down</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Total Expenses</p>
+                    <div className="flex items-baseline gap-2">
+                      <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {totalExpense.toLocaleString('id-ID')}</h4>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant shrink-0">
+                    <span className="material-symbols-outlined">account_balance_wallet</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-outline truncate">Net Savings</p>
+                    <div className="flex items-baseline gap-2">
+                      <h4 className="text-lg sm:text-xl font-bold font-headline truncate">Rp {balance.toLocaleString('id-ID')}</h4>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Charts & Transactions */}
+              <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-in fade-in duration-300">
+                {/* Monthly Cashflow */}
+                <div className="col-span-1 lg:col-span-7 bg-surface-container-lowest p-4 sm:p-8 rounded-xl h-[350px] sm:h-[420px] flex flex-col">
+                  <div className="flex justify-between items-center mb-4 sm:mb-8">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold font-headline">Wealth Dynamics</h3>
+                      <p className="text-[10px] sm:text-xs text-outline font-medium">Income vs expense analysis</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 w-full h-full pb-2 min-h-[200px]">
+                    {chartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ebefed" vertical={false} />
+                          <XAxis dataKey="displayDate" stroke="#6f7a72" fontSize={10} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#6f7a72" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `Rp ${value / 1000}k`} width={60} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: '#ffffff', borderColor: '#ebefed', borderRadius: '8px', fontSize: '12px' }}
+                            itemStyle={{ color: '#181c1b' }}
+                          />
+                          <Bar dataKey="income" fill="#0d6946" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                          <Bar dataKey="expense" fill="#af5c5f" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                          <Line type="monotone" dataKey="balance" stroke="#31835d" strokeWidth={3} dot={{ r: 4, fill: '#31835d', strokeWidth: 2, stroke: '#ffffff' }} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-outline text-sm">No data available</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Recent Transactions */}
+                <div className="col-span-1 lg:col-span-5 bg-surface-container-lowest p-4 sm:p-8 rounded-xl h-[400px] sm:h-[420px] overflow-hidden flex flex-col">
+                  <div className="flex justify-between items-center mb-4 sm:mb-6">
+                    <h3 className="text-base sm:text-lg font-bold font-headline">Transactions</h3>
+                    <a className="text-[10px] sm:text-xs font-bold text-primary hover:underline" href="#">View All</a>
+                  </div>
+                  <div className="space-y-4 sm:space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                    {transactions.slice(0, 10).map(tx => (
+                      <div key={tx.id} className="flex items-center justify-between group">
+                        <div className="flex items-center gap-3 min-w-0 pr-2">
+                          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'income' ? 'bg-primary-container/20 text-primary' : 'bg-error-container/50 text-error'}`}>
+                            <span className="material-symbols-outlined text-[18px] sm:text-[24px]">{tx.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-bold font-headline truncate">{tx.category || 'Transaction'}</p>
+                            <p className="text-[9px] sm:text-[10px] text-outline truncate">{format(new Date(tx.date), 'MMM dd, yyyy')} • {tx.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className={`text-xs sm:text-sm font-bold ${tx.type === 'income' ? 'text-primary' : 'text-error'}`}>
+                            {tx.type === 'income' ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
+                          </p>
+                          <span className={`text-[8px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold inline-block mt-1 ${tx.type === 'income' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container'}`}>
+                            Completed
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {transactions.length === 0 && (
+                      <div className="text-center text-outline text-sm mt-10">No transactions yet.</div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* Mobile/Tablet Right Panel Content */}
+              <section className="xl:hidden pt-8 border-t border-surface-container animate-in fade-in duration-300">
+                {renderRightPanel()}
+              </section>
+            </>
+          )}
+
+          {activeTab === 'settings' && renderSettings()}
         </main>
       </div>
 
