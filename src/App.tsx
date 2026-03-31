@@ -141,8 +141,7 @@ export default function App() {
     if (isAuthReady && user && isRegistered) {
       const q = query(
         collection(db, 'transactions'),
-        where('userId', '==', user.uid),
-        orderBy('date', 'desc')
+        where('userId', '==', user.uid)
       );
       
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -150,6 +149,8 @@ export default function App() {
         snapshot.forEach((doc) => {
           txs.push({ id: doc.id, ...doc.data() } as Transaction);
         });
+        // Sort in memory to avoid requiring a composite index
+        txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setTransactions(txs);
       }, (error) => {
         console.error("Error fetching transactions:", error);

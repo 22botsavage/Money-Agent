@@ -299,12 +299,11 @@ app.post('/api/webhook/twilio', async (req, res) => {
     });
 
     const totalBalance = totalIncome - totalExpense;
-    const dailyBudget = 150000; // Default daily budget
-    const budgetLeft = dailyBudget - todayExpense;
+    const todayNet = todayIncome - todayExpense;
 
     const formatIdr = (num: number) => `Rp ${num.toLocaleString('id-ID')}`;
 
-    const replyMessage = `📉 DAILY FINAN-CHECK\n\nUser: ${userEmail}\nDate: ${displayDate}\n\n💰 IN: ${formatIdr(todayIncome)}\n💸 OUT: ${formatIdr(todayExpense)}\n🏦 BALANCE: ${formatIdr(totalBalance)}\n\n⚠️ BUDGET LEFT: ${formatIdr(budgetLeft)}\n🚩 LEAK: ${biggestExpenseName} - ${formatIdr(biggestExpenseAmount)}\n\nThink before you spend.`;
+    const replyMessage = `📉 DAILY FINAN-CHECK\n\nUser: ${userEmail}\nDate: ${displayDate}\n\n💰 IN: ${formatIdr(todayIncome)}\n💸 OUT: ${formatIdr(todayExpense)}\n🏦 BALANCE: ${formatIdr(totalBalance)}\n\n📅 CURRENT BALANCE: ${formatIdr(todayNet)}\n🚩 LEAK: ${biggestExpenseName} - ${formatIdr(biggestExpenseAmount)}\n\nThink before you spend.`;
 
     // 5. Send confirmation back
     await sendWhatsAppMessage(from, replyMessage, res, req.body.To);
