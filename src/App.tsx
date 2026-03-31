@@ -108,6 +108,7 @@ export default function App() {
       const deletePromises = transactions.map(tx => deleteDoc(doc(db, 'transactions', tx.id)));
       await Promise.all(deletePromises);
       setIsResetModalOpen(false);
+      window.location.reload();
     } catch (error) {
       console.error("Error resetting data:", error);
     } finally {
