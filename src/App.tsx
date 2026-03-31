@@ -89,6 +89,19 @@ export default function App() {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
+  // Transactions State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(tx => {
+      const matchesSearch = tx.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            tx.category.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = filterType === 'all' || tx.type === filterType;
+      return matchesSearch && matchesType;
+    });
+  }, [transactions, searchQuery, filterType]);
+
   const handleReset = async () => {
     setIsResetting(true);
     try {
@@ -576,6 +589,78 @@ export default function App() {
     </div>
   );
 
+  const renderTransactions = () => (
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div>
+        <h2 className="text-2xl font-bold font-headline text-on-surface">Transactions</h2>
+        <p className="text-sm text-outline mt-1">View and manage your completed transactions.</p>
+      </div>
+
+      <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <div className="relative w-full sm:w-96">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input 
+              type="text" 
+              placeholder="Search by description or category..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-surface-container rounded-lg border-none focus:ring-2 focus:ring-primary text-sm outline-none"
+            />
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+            <button 
+              onClick={() => setFilterType('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${filterType === 'all' ? 'bg-primary text-white' : 'bg-surface-container text-outline hover:text-primary'}`}
+            >
+              All
+            </button>
+            <button 
+              onClick={() => setFilterType('income')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${filterType === 'income' ? 'bg-emerald-500 text-white' : 'bg-surface-container text-outline hover:text-emerald-500'}`}
+            >
+              Income
+            </button>
+            <button 
+              onClick={() => setFilterType('expense')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${filterType === 'expense' ? 'bg-error text-white' : 'bg-surface-container text-outline hover:text-error'}`}
+            >
+              Expense
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {filteredTransactions.length === 0 ? (
+            <div className="text-center py-12 text-outline">
+              <span className="material-symbols-outlined text-4xl mb-2 opacity-50">receipt_long</span>
+              <p>No transactions found.</p>
+            </div>
+          ) : (
+            filteredTransactions.map(tx => (
+              <div key={tx.id} className="flex items-center justify-between p-4 bg-surface-container rounded-xl hover:bg-surface-container-high transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                    <span className="material-symbols-outlined text-lg">
+                      {tx.type === 'income' ? 'arrow_downward' : 'arrow_upward'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-on-surface text-sm sm:text-base">{tx.description}</p>
+                    <p className="text-xs text-outline">{tx.category} • {format(new Date(tx.date), 'MMM d, yyyy h:mm a')}</p>
+                  </div>
+                </div>
+                <div className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-on-surface'}`}>
+                  {tx.type === 'income' ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderSettings = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
       <div>
@@ -685,10 +770,10 @@ export default function App() {
             <span className="material-symbols-outlined">payments</span>
             <span className="text-sm font-label font-medium">Payments</span>
           </a>
-          <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-all active:scale-95 hover:bg-emerald-100/50 rounded-xl" href="#">
+          <button onClick={() => { setActiveTab('transactions'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all active:scale-95 ${activeTab === 'transactions' ? 'text-primary font-semibold bg-white shadow-sm' : 'text-outline hover:text-primary hover:bg-emerald-100/50'}`}>
             <span className="material-symbols-outlined">receipt_long</span>
             <span className="text-sm font-label font-medium">Transactions</span>
-          </a>
+          </button>
           <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-all active:scale-95 hover:bg-emerald-100/50 rounded-xl" href="#">
             <span className="material-symbols-outlined">trending_up</span>
             <span className="text-sm font-label font-medium">Investments</span>
@@ -901,7 +986,7 @@ export default function App() {
                 <div className="col-span-1 lg:col-span-5 bg-surface-container-lowest p-4 sm:p-8 rounded-xl h-[400px] sm:h-[420px] overflow-hidden flex flex-col">
                   <div className="flex justify-between items-center mb-4 sm:mb-6">
                     <h3 className="text-base sm:text-lg font-bold font-headline">Transactions</h3>
-                    <a className="text-[10px] sm:text-xs font-bold text-primary hover:underline active:scale-95 transition-transform" href="#">View All</a>
+                    <button onClick={() => setActiveTab('transactions')} className="text-[10px] sm:text-xs font-bold text-primary hover:underline active:scale-95 transition-transform">View All</button>
                   </div>
                   <div className="space-y-4 sm:space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                     {transactions.slice(0, 10).map(tx => (
@@ -938,6 +1023,8 @@ export default function App() {
               </section>
             </>
           )}
+
+          {activeTab === 'transactions' && renderTransactions()}
 
           {activeTab === 'settings' && renderSettings()}
         </main>
