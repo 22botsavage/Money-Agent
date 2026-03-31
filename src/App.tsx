@@ -68,6 +68,8 @@ export default function App() {
 
         if (elapsed < 3500) {
           animationFrameId = requestAnimationFrame(updateProgress);
+        } else {
+          setLoading(false);
         }
       };
 
@@ -121,13 +123,16 @@ export default function App() {
             }
           } else {
             setIsRegistered(false);
+            setLoading(false);
           }
         } catch (error) {
           console.error("Error fetching user:", error);
+          setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
       setIsAuthReady(true);
-      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -158,6 +163,7 @@ export default function App() {
     e.preventDefault();
     if (!user || !whatsappNumber) return;
     
+    setLoading(true);
     try {
       // Format number: ensure it starts with whatsapp:+
       let formattedNum = whatsappNumber.trim();
@@ -180,12 +186,14 @@ export default function App() {
     } catch (error) {
       console.error("Error registering number:", error);
       alert("Failed to register number. Please try again.");
+      setLoading(false);
     }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
+    setLoading(true);
     try {
       if (isSignUp) {
         await signUpWithEmail(email, password);
@@ -194,6 +202,7 @@ export default function App() {
       }
     } catch (error: any) {
       setAuthError(error.message || 'Authentication failed');
+      setLoading(false);
     }
   };
 
@@ -728,7 +737,6 @@ export default function App() {
               <button 
                 onClick={() => {
                   setLoading(true);
-                  setTimeout(() => setLoading(false), 3500);
                 }}
                 className="text-outline hover:text-primary transition-all hover:scale-110 active:scale-95 relative"
                 title="Preview Loading Screen"
