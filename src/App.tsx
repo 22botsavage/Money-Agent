@@ -736,10 +736,10 @@ export default function App() {
               </button>
               <button 
                 onClick={() => {
-                  setLoading(true);
+                  window.location.reload();
                 }}
                 className="text-outline hover:text-primary transition-all hover:scale-110 active:scale-95 relative"
-                title="Preview Loading Screen"
+                title="Refresh"
               >
                 <span className="material-symbols-outlined">refresh</span>
               </button>
