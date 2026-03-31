@@ -3,6 +3,7 @@ import { auth, db, signInWithEmail, signUpWithEmail, logOut } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, deleteDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -31,8 +32,30 @@ export default function App() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  useEffect(() => {
+    if (loading) {
+      setLoadingProgress(0);
+      const duration = 3500;
+      const interval = 50;
+      const steps = duration / interval;
+      let currentStep = 0;
+
+      const timer = setInterval(() => {
+        currentStep++;
+        const progress = Math.min(Math.round((currentStep / steps) * 100), 100);
+        setLoadingProgress(progress);
+        if (currentStep >= steps) {
+          clearInterval(timer);
+        }
+      }, interval);
+
+      return () => clearInterval(timer);
+    }
+  }, [loading]);
 
   // Auth Form State
   const [email, setEmail] = useState('');
@@ -209,13 +232,125 @@ export default function App() {
   }, [transactions]);
 
   if (!isAuthReady || loading) {
+    let headerText = "Preparing your budget";
+    let subText = "Syncing financial data...";
+    let pillText = `Syncing • ${loadingProgress}%`;
+    let motionState = "Blur_In";
+
+    if (loadingProgress > 32 && loadingProgress <= 82) {
+      headerText = "Building your plan";
+      subText = "Analyzing spending patterns.";
+      pillText = `Calculating • ${loadingProgress}%`;
+      motionState = "Focus_Shift";
+    } else if (loadingProgress > 82) {
+      headerText = "Almost there";
+      subText = "Finalizing your strategy.";
+      pillText = `Processing • ${loadingProgress}%`;
+      motionState = "Expansion_Glow";
+    }
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface text-primary font-body">
-        <div className="animate-pulse flex flex-col items-center">
-          <span className="material-symbols-outlined text-4xl mb-2">sync</span>
-          <p className="text-sm font-bold font-headline">Loading...</p>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+        className="min-h-screen flex flex-col items-center justify-center font-body px-4"
+        style={{ background: 'radial-gradient(circle at center, #FAFAFA 0%, #F2F2F2 100%)' }}
+      >
+        <div className="relative w-24 h-24 mb-8 flex items-center justify-center">
+          {/* Circular Progress Track */}
+          <motion.svg 
+            className="absolute inset-0 w-full h-full" 
+            viewBox="0 0 100 100"
+            initial={{ rotate: -90 }}
+            animate={{ rotate: 270 }}
+            transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+          >
+            <circle 
+              cx="50" cy="50" r="48" 
+              fill="none" 
+              stroke="#E0E0E0" 
+              strokeWidth="2" 
+            />
+            {/* Circular Progress Indicator */}
+            <motion.circle 
+              cx="50" cy="50" r="48" 
+              fill="none" 
+              stroke="#27AE60" 
+              strokeWidth="2" 
+              strokeDasharray="301.59"
+              strokeLinecap="round"
+              initial={{ strokeDashoffset: 301.59 }}
+              animate={{ strokeDashoffset: 301.59 - (loadingProgress / 100) * 301.59 }}
+              transition={{ duration: 0.1, ease: "linear" }}
+            />
+          </motion.svg>
+          
+          {/* Center Widget */}
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 15 }}
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 z-10"
+          >
+            <span className="material-symbols-outlined text-white text-3xl" style={{ color: '#FFFFFF' }}>bar_chart</span>
+          </motion.div>
         </div>
-      </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="text-center max-w-sm"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={motionState}
+              initial={{ 
+                opacity: 0, 
+                filter: motionState === 'Blur_In' ? 'blur(8px)' : 'blur(4px)', 
+                scale: motionState === 'Expansion_Glow' ? 0.95 : 1 
+              }}
+              animate={{ 
+                opacity: 1, 
+                filter: 'blur(0px)', 
+                scale: 1 
+              }}
+              exit={{ 
+                opacity: 0, 
+                filter: motionState === 'Blur_In' ? 'blur(8px)' : 'blur(4px)', 
+                scale: motionState === 'Expansion_Glow' ? 1.05 : 1 
+              }}
+              transition={{ 
+                duration: 0.4, 
+                ease: [0.83, 0, 0.17, 1] // Ease-In-Out Quintic approximation
+              }}
+            >
+              <h2 
+                className="font-headline mb-3 tracking-tight" 
+                style={{ fontWeight: 700, color: '#122620', fontSize: '24px' }}
+              >
+                {headerText}
+              </h2>
+              <p 
+                className="mb-8 leading-relaxed"
+                style={{ fontWeight: 400, color: '#4A4A4A', fontSize: '16px', textAlign: 'center' }}
+              >
+                {subText}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+          
+          {/* Backend Simulation Details */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full bg-black/5 text-[#4A4A4A]">
+              <span className="w-2 h-2 rounded-full bg-[#27AE60] animate-pulse"></span>
+              {pillText}
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -260,7 +395,7 @@ export default function App() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-primary text-white text-sm font-bold rounded-xl shadow-sm hover:shadow-md hover:bg-primary/90 transition-all mt-6"
+              className="w-full py-3 bg-primary text-white text-sm font-bold rounded-xl shadow-sm hover:shadow-md hover:bg-primary/90 hover:-translate-y-0.5 active:scale-95 transition-all mt-6"
             >
               {isSignUp ? 'Create Account' : 'Sign In'}
             </button>
@@ -269,7 +404,7 @@ export default function App() {
           <div className="mt-6 text-center">
             <button
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-primary hover:underline font-medium"
+              className="text-sm text-primary hover:underline font-medium active:scale-95 transition-transform"
             >
               {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
             </button>
@@ -306,7 +441,7 @@ export default function App() {
             </div>
             <button
               type="submit"
-              className="w-full py-3 bg-primary text-white text-sm font-bold rounded-xl shadow-sm hover:shadow-md hover:bg-primary/90 transition-all mt-4"
+              className="w-full py-3 bg-primary text-white text-sm font-bold rounded-xl shadow-sm hover:shadow-md hover:bg-primary/90 hover:-translate-y-0.5 active:scale-95 transition-all mt-4"
             >
               Connect Number
             </button>
@@ -326,7 +461,7 @@ export default function App() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h3 className="text-md font-bold font-headline">Allocation</h3>
-          <button className="text-primary"><span className="material-symbols-outlined">more_horiz</span></button>
+          <button className="text-primary hover:text-primary/80 active:scale-95 transition-transform"><span className="material-symbols-outlined">more_horiz</span></button>
         </div>
         <div className="relative w-48 h-48 mx-auto flex items-center justify-center">
           {/* SVG Donut Chart Mockup */}
@@ -389,7 +524,7 @@ export default function App() {
             </div>
             <div>
               <p className="text-xs"><span className="font-bold">Advisor Elena</span> shared a new Investment Report.</p>
-              <button className="mt-2 flex items-center gap-2 bg-surface-container rounded-lg px-3 py-1.5 group hover:bg-surface-container-high transition-colors">
+              <button className="mt-2 flex items-center gap-2 bg-surface-container rounded-lg px-3 py-1.5 group hover:bg-surface-container-high active:scale-95 transition-all">
                 <span className="material-symbols-outlined text-[14px]">description</span>
                 <span className="text-[10px] font-bold">Q3_Outlook.pdf</span>
               </button>
@@ -404,7 +539,7 @@ export default function App() {
         <span className="material-symbols-outlined text-primary text-3xl mb-2">auto_awesome</span>
         <h4 className="text-sm font-bold font-headline mb-2">Upgrade to Platinum</h4>
         <p className="text-[10px] text-outline mb-4 leading-relaxed">Unlock 24/7 concierge support and lower transaction fees.</p>
-        <button className="w-full py-2 bg-on-surface text-white text-xs font-bold rounded-full hover:shadow-lg transition-all">
+        <button className="w-full py-2 bg-on-surface text-white text-xs font-bold rounded-full hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all">
           Explore Benefits
         </button>
       </div>
@@ -478,7 +613,7 @@ export default function App() {
             </div>
             <button 
               onClick={() => setIsResetModalOpen(true)} 
-              className="px-4 py-2 bg-error text-white text-xs font-bold rounded-xl hover:bg-error/90 transition-all flex items-center gap-2 shrink-0 shadow-sm"
+              className="px-4 py-2 bg-error text-white text-xs font-bold rounded-xl hover:bg-error/90 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2 shrink-0 shadow-sm"
             >
               <span className="material-symbols-outlined text-[16px]">delete_forever</span>
               Reset Data
@@ -507,24 +642,24 @@ export default function App() {
             <h1 className="text-lg font-bold text-primary font-headline tracking-tight">Atmospheric Trust</h1>
             <p className="text-[10px] uppercase tracking-widest text-primary/60 font-medium">Private Wealth</p>
           </div>
-          <button className="lg:hidden text-outline hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+          <button className="lg:hidden text-outline hover:text-primary active:scale-95 transition-transform" onClick={() => setIsMobileMenuOpen(false)}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
         <nav className="flex-1 space-y-1">
-          <button onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'dashboard' ? 'text-primary font-semibold bg-white shadow-sm' : 'text-outline hover:text-primary hover:bg-emerald-100/50'}`}>
+          <button onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all active:scale-95 ${activeTab === 'dashboard' ? 'text-primary font-semibold bg-white shadow-sm' : 'text-outline hover:text-primary hover:bg-emerald-100/50'}`}>
             <span className="material-symbols-outlined">dashboard</span>
             <span className="text-sm font-label font-medium">Dashboard</span>
           </button>
-          <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-colors hover:bg-emerald-100/50 rounded-xl" href="#">
+          <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-all active:scale-95 hover:bg-emerald-100/50 rounded-xl" href="#">
             <span className="material-symbols-outlined">payments</span>
             <span className="text-sm font-label font-medium">Payments</span>
           </a>
-          <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-colors hover:bg-emerald-100/50 rounded-xl" href="#">
+          <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-all active:scale-95 hover:bg-emerald-100/50 rounded-xl" href="#">
             <span className="material-symbols-outlined">receipt_long</span>
             <span className="text-sm font-label font-medium">Transactions</span>
           </a>
-          <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-colors hover:bg-emerald-100/50 rounded-xl" href="#">
+          <a className="flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-all active:scale-95 hover:bg-emerald-100/50 rounded-xl" href="#">
             <span className="material-symbols-outlined">trending_up</span>
             <span className="text-sm font-label font-medium">Investments</span>
           </a>
@@ -535,17 +670,17 @@ export default function App() {
           <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
           <p className="text-xs font-medium text-primary-fixed mb-1">Portfolio Insight</p>
           <h4 className="text-sm font-bold font-headline mb-3 leading-tight">Ready for a new asset?</h4>
-          <button className="w-full py-2 bg-white text-primary text-xs font-bold rounded-full shadow-sm hover:shadow-md transition-shadow">
+          <button className="w-full py-2 bg-white text-primary text-xs font-bold rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all">
             New Transaction
           </button>
         </div>
 
         <div className="pt-4 border-t border-emerald-900/5 space-y-1">
-          <button onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'settings' ? 'text-primary font-semibold bg-white shadow-sm' : 'text-outline hover:text-primary hover:bg-emerald-100/50'}`}>
+          <button onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all active:scale-95 ${activeTab === 'settings' ? 'text-primary font-semibold bg-white shadow-sm' : 'text-outline hover:text-primary hover:bg-emerald-100/50'}`}>
             <span className="material-symbols-outlined">settings</span>
             <span className="text-sm font-label font-medium">Settings</span>
           </button>
-          <button onClick={logOut} className="w-full flex items-center gap-3 px-4 py-3 text-outline hover:text-primary transition-colors">
+          <button onClick={logOut} className="w-full flex items-center gap-3 px-4 py-3 text-outline hover:text-primary active:scale-95 transition-all">
             <span className="material-symbols-outlined">logout</span>
             <span className="text-sm font-label font-medium">Logout</span>
           </button>
@@ -557,7 +692,7 @@ export default function App() {
         {/* Top Navigation */}
         <header className="fixed top-0 left-0 lg:left-64 right-0 xl:right-[300px] h-16 z-30 bg-white/80 backdrop-blur-xl shadow-sm shadow-emerald-900/5 flex justify-between items-center px-4 sm:px-8 transition-all duration-300">
           <div className="flex items-center gap-4 w-full max-w-md">
-            <button className="lg:hidden text-outline hover:text-primary flex items-center justify-center" onClick={() => setIsMobileMenuOpen(true)}>
+            <button className="lg:hidden text-outline hover:text-primary flex items-center justify-center active:scale-95 transition-transform" onClick={() => setIsMobileMenuOpen(true)}>
               <span className="material-symbols-outlined">menu</span>
             </button>
             <div className="relative w-full hidden sm:block">
@@ -567,10 +702,20 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2 sm:gap-4">
-              <button className="text-outline hover:text-primary transition-colors hidden sm:block">
+              <button className="text-outline hover:text-primary transition-all hover:scale-110 active:scale-95 hidden sm:block">
                 <span className="material-symbols-outlined">help_outline</span>
               </button>
-              <button className="text-outline hover:text-primary transition-colors relative">
+              <button 
+                onClick={() => {
+                  setLoading(true);
+                  setTimeout(() => setLoading(false), 3500);
+                }}
+                className="text-outline hover:text-primary transition-all hover:scale-110 active:scale-95 relative"
+                title="Preview Loading Screen"
+              >
+                <span className="material-symbols-outlined">refresh</span>
+              </button>
+              <button className="text-outline hover:text-primary transition-all hover:scale-110 active:scale-95 relative">
                 <span className="material-symbols-outlined">notifications</span>
                 <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
               </button>
@@ -627,25 +772,25 @@ export default function App() {
 
                 {/* Action Row Vertical */}
                 <div className="col-span-1 lg:col-span-4 grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-2 gap-3 sm:gap-4">
-                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container hover:-translate-y-1 active:scale-95 transition-all group">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
                       <span className="material-symbols-outlined text-[20px] sm:text-[24px]">add_circle</span>
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold font-headline">Top Up</span>
                   </button>
-                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container hover:-translate-y-1 active:scale-95 transition-all group">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
                       <span className="material-symbols-outlined text-[20px] sm:text-[24px]">swap_horiz</span>
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold font-headline">Transfer</span>
                   </button>
-                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container hover:-translate-y-1 active:scale-95 transition-all group">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-white transition-all">
                       <span className="material-symbols-outlined text-[20px] sm:text-[24px]">request_quote</span>
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold font-headline">Request</span>
                   </button>
-                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container transition-colors group">
+                  <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container hover:-translate-y-1 active:scale-95 transition-all group">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-outline/10 flex items-center justify-center text-outline group-hover:bg-on-surface group-hover:text-white transition-all">
                       <span className="material-symbols-outlined text-[20px] sm:text-[24px]">history</span>
                     </div>
@@ -727,7 +872,7 @@ export default function App() {
                 <div className="col-span-1 lg:col-span-5 bg-surface-container-lowest p-4 sm:p-8 rounded-xl h-[400px] sm:h-[420px] overflow-hidden flex flex-col">
                   <div className="flex justify-between items-center mb-4 sm:mb-6">
                     <h3 className="text-base sm:text-lg font-bold font-headline">Transactions</h3>
-                    <a className="text-[10px] sm:text-xs font-bold text-primary hover:underline" href="#">View All</a>
+                    <a className="text-[10px] sm:text-xs font-bold text-primary hover:underline active:scale-95 transition-transform" href="#">View All</a>
                   </div>
                   <div className="space-y-4 sm:space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                     {transactions.slice(0, 10).map(tx => (
@@ -788,14 +933,14 @@ export default function App() {
               <button
                 onClick={() => setIsResetModalOpen(false)}
                 disabled={isResetting}
-                className="px-4 py-2 text-sm font-medium text-outline hover:text-on-surface transition-colors"
+                className="px-4 py-2 text-sm font-medium text-outline hover:text-on-surface active:scale-95 transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={handleReset}
                 disabled={isResetting}
-                className="px-4 py-2 bg-error hover:bg-error/90 disabled:bg-error/50 text-white text-sm font-bold rounded-xl transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-error hover:bg-error/90 disabled:bg-error/50 text-white text-sm font-bold rounded-xl active:scale-95 transition-all flex items-center gap-2"
               >
                 {isResetting ? 'Resetting...' : 'Yes, Reset Data'}
               </button>
