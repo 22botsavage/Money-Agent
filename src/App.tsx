@@ -388,8 +388,8 @@ export default function App() {
       <div className="min-h-screen flex items-center justify-center bg-surface p-4 font-body text-on-surface">
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-xl shadow-emerald-900/5 max-w-md w-full border border-surface-container">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-primary font-headline tracking-tight">Atmospheric Trust</h1>
-            <p className="text-xs uppercase tracking-widest text-outline font-medium mt-1">Private Wealth</p>
+            <h1 className="text-2xl font-bold text-primary font-headline tracking-tight">Money Agent</h1>
+            <p className="text-xs uppercase tracking-widest text-outline font-medium mt-1">Your Personal Money Manager</p>
           </div>
           
           <form onSubmit={handleAuth} className="space-y-4">
@@ -668,8 +668,8 @@ export default function App() {
       <aside className={`fixed left-0 top-0 h-screen w-64 bg-surface-container-lowest lg:bg-emerald-50/50 flex flex-col p-4 space-y-2 z-50 border-r border-surface-container transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="mb-8 px-4 py-2 flex justify-between items-center">
           <div>
-            <h1 className="text-lg font-bold text-primary font-headline tracking-tight">Atmospheric Trust</h1>
-            <p className="text-[10px] uppercase tracking-widest text-primary/60 font-medium">Private Wealth</p>
+            <h1 className="text-lg font-bold text-primary font-headline tracking-tight">Money Agent</h1>
+            <p className="text-[10px] uppercase tracking-widest text-primary/60 font-medium">Your Personal Money Manager</p>
           </div>
           <button className="lg:hidden text-outline hover:text-primary active:scale-95 transition-transform" onClick={() => setIsMobileMenuOpen(false)}>
             <span className="material-symbols-outlined">close</span>
@@ -802,25 +802,25 @@ export default function App() {
                 <div className="col-span-1 lg:col-span-4 grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-2 gap-3 sm:gap-4">
                   <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container hover:-translate-y-1 active:scale-95 transition-all group">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">add_circle</span>
+                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">account_balance_wallet</span>
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold font-headline">Top Up</span>
                   </button>
                   <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container hover:-translate-y-1 active:scale-95 transition-all group">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
-                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">swap_horiz</span>
+                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">send_money</span>
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold font-headline">Transfer</span>
                   </button>
                   <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container hover:-translate-y-1 active:scale-95 transition-all group">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-white transition-all">
-                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">request_quote</span>
+                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">payments</span>
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold font-headline">Request</span>
                   </button>
                   <button className="flex flex-col items-center justify-center gap-2 sm:gap-3 bg-surface-container-lowest rounded-xl p-3 sm:p-4 hover:bg-surface-container hover:-translate-y-1 active:scale-95 transition-all group">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-outline/10 flex items-center justify-center text-outline group-hover:bg-on-surface group-hover:text-white transition-all">
-                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">history</span>
+                      <span className="material-symbols-outlined text-[20px] sm:text-[24px]">receipt_long</span>
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold font-headline">History</span>
                   </button>
@@ -852,7 +852,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="bg-surface-container-lowest p-4 sm:p-6 rounded-xl flex items-center gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
                     <span className="material-symbols-outlined">account_balance_wallet</span>
                   </div>
                   <div className="min-w-0">

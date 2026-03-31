@@ -184,12 +184,12 @@ app.post('/api/webhook/twilio', async (req, res) => {
         }
       });
       contentsParts.push({ 
-        text: `Listen to this voice message and parse the financial transaction. Return JSON with amount (number), currency (string, default to IDR), category (string), description (string), type (string: 'expense' or 'income').` 
+        text: `Listen to this voice message and parse the financial transaction. Return JSON with amount (number), currency (string, default to IDR), category (string), description (string), type (string: 'expense', 'income', or 'none'). If it's not a transaction, set type to 'none' and amount to 0.` 
       });
     } else {
       // Handle Text Message
       contentsParts.push({ 
-        text: `Parse this financial transaction: "${incomingMsg}". Return JSON with amount (number), currency (string, default to IDR), category (string), description (string), type (string: 'expense' or 'income').` 
+        text: `Parse this financial transaction: "${incomingMsg}". Return JSON with amount (number), currency (string, default to IDR), category (string), description (string), type (string: 'expense', 'income', or 'none'). If it's not a transaction (e.g., asking for a recap, greeting, or reset), set type to 'none' and amount to 0.` 
       });
     }
 
@@ -215,19 +215,21 @@ app.post('/api/webhook/twilio', async (req, res) => {
     const parsedData = JSON.parse(geminiResponse.text || '{}');
     
     // 3. Save to Firestore with a webhook secret to bypass rules
-    const transaction = {
-      userId,
-      amount: parsedData.amount,
-      currency: parsedData.currency,
-      category: parsedData.category,
-      description: parsedData.description,
-      type: parsedData.type,
-      date: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      webhookSecret: "ai-studio-webhook-secret-2026"
-    };
+    if (parsedData.type === 'expense' || parsedData.type === 'income') {
+      const transaction = {
+        userId,
+        amount: parsedData.amount || 0,
+        currency: parsedData.currency || 'IDR',
+        category: parsedData.category || 'Uncategorized',
+        description: parsedData.description || 'Transaction',
+        type: parsedData.type,
+        date: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        webhookSecret: "ai-studio-webhook-secret-2026"
+      };
 
-    await addDoc(collection(db, 'transactions'), transaction);
+      await addDoc(collection(db, 'transactions'), transaction);
+    }
 
     // 4. Fetch data for Daily Finan-Check
     const userDoc = await getDoc(doc(db, 'users', userId));
@@ -302,7 +304,7 @@ app.post('/api/webhook/twilio', async (req, res) => {
 
     const formatIdr = (num: number) => `Rp ${num.toLocaleString('id-ID')}`;
 
-    const replyMessage = `📉 DAILY FINAN-CHECK\n\nUser: ${userEmail}\nDate: ${displayDate}\n\n💰 IN: ${formatIdr(todayIncome)}\n💸 OUT: ${formatIdr(todayExpense)}\n🏦 BALANCE: ${formatIdr(totalBalance)}\n\n⚠️ RECAP: ${formatIdr(budgetLeft)}\n🚩 LEAK: ${biggestExpenseName} - ${formatIdr(biggestExpenseAmount)}\n\nThink before you spend.`;
+    const replyMessage = `📉 DAILY FINAN-CHECK\n\nUser: ${userEmail}\nDate: ${displayDate}\n\n💰 IN: ${formatIdr(todayIncome)}\n💸 OUT: ${formatIdr(todayExpense)}\n🏦 BALANCE: ${formatIdr(totalBalance)}\n\n⚠️ BUDGET LEFT: ${formatIdr(budgetLeft)}\n🚩 LEAK: ${biggestExpenseName} - ${formatIdr(biggestExpenseAmount)}\n\nThink before you spend.`;
 
     // 5. Send confirmation back
     await sendWhatsAppMessage(from, replyMessage, res, req.body.To);
