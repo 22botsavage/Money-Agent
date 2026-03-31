@@ -39,21 +39,41 @@ export default function App() {
   useEffect(() => {
     if (loading) {
       setLoadingProgress(0);
-      const duration = 3500;
-      const interval = 50;
-      const steps = duration / interval;
-      let currentStep = 0;
+      const startTime = performance.now();
+      let animationFrameId: number;
 
-      const timer = setInterval(() => {
-        currentStep++;
-        const progress = Math.min(Math.round((currentStep / steps) * 100), 100);
-        setLoadingProgress(progress);
-        if (currentStep >= steps) {
-          clearInterval(timer);
+      const updateProgress = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        let progress = 0;
+
+        if (elapsed < 1200) {
+          // 0% - 70% in 1200ms (Aggressive)
+          const t = elapsed / 1200;
+          const ease = t === 1 ? 1 : 1 - Math.pow(2, -10 * t); // easeOutExpo
+          progress = 70 * ease;
+        } else if (elapsed < 2700) {
+          // 71% - 92% in 1500ms (Slow_Down)
+          const t = (elapsed - 1200) / 1500;
+          const ease = 1 - Math.pow(1 - t, 3); // easeOutCubic
+          progress = 70 + (22 * ease);
+        } else if (elapsed < 3500) {
+          // 93% - 99% in 800ms (Hold_Minimum)
+          const t = (elapsed - 2700) / 800;
+          progress = 92 + (7 * t); // linear
+        } else {
+          progress = 100;
         }
-      }, interval);
 
-      return () => clearInterval(timer);
+        setLoadingProgress(Math.min(Math.round(progress), 100));
+
+        if (elapsed < 3500) {
+          animationFrameId = requestAnimationFrame(updateProgress);
+        }
+      };
+
+      animationFrameId = requestAnimationFrame(updateProgress);
+
+      return () => cancelAnimationFrame(animationFrameId);
     }
   }, [loading]);
 
@@ -237,12 +257,12 @@ export default function App() {
     let pillText = `Syncing • ${loadingProgress}%`;
     let motionState = "Blur_In";
 
-    if (loadingProgress > 32 && loadingProgress <= 82) {
+    if (loadingProgress > 70 && loadingProgress <= 92) {
       headerText = "Building your plan";
       subText = "Analyzing spending patterns.";
       pillText = `Calculating • ${loadingProgress}%`;
       motionState = "Focus_Shift";
-    } else if (loadingProgress > 82) {
+    } else if (loadingProgress > 92) {
       headerText = "Almost there";
       subText = "Finalizing your strategy.";
       pillText = `Processing • ${loadingProgress}%`;
